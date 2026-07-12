@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Electoral Geography — RED</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='6'%20fill='%238b1e2d'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='18'%20fill='%23fff'%20text-anchor='middle'%20font-weight='700'%3ER%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<script src="assets/red-viz.js"></script>
+<link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+<style>
+.tilemap{display:grid;gap:3px;margin:10px 0}
+.tile{border-radius:3px;font-size:.58rem;color:#fff;display:flex;align-items:flex-end;padding:2px 3px;
+  min-height:34px;cursor:pointer;text-shadow:0 0 3px rgba(0,0,0,.55);overflow:hidden;white-space:nowrap}
+.tile:hover{outline:2px solid var(--accent)}
+.tilemap.mini{gap:1.5px}
+.tilemap.mini .tile{min-height:11px;font-size:0;padding:0;border-radius:1.5px;cursor:default}
+.legend{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted);margin:6px 0}
+.legend .sw{width:34px;height:12px;border-radius:2px}
+.mmgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.mmgrid .cap{font-size:.75rem;text-align:center;color:var(--muted)}
+#deckwrap{position:relative;height:640px;border-radius:8px;overflow:hidden;background:#f2f3f0}
+#map{position:absolute;inset:0}
+.maplibregl-popup-content{font-family:var(--sans);font-size:.8rem;border-radius:8px;padding:8px 11px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.maplibregl-ctrl-group{border-radius:8px!important}
+#decktip{position:absolute;z-index:5;pointer-events:none;background:rgba(20,20,26,.92);color:#fff;
+  padding:6px 10px;border-radius:6px;font-size:.78rem;display:none;max-width:260px}
+.map-callout{position:absolute;z-index:3;top:12px;left:12px;max-width:320px;background:rgba(255,255,255,.92);
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:.82rem;color:var(--ink)}
+.map-callout b{display:block;margin-bottom:2px}
+.split{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.chip{background:#f0e6e7;border-radius:12px;padding:2px 10px;font-size:.78rem;color:var(--red-dark);cursor:pointer}
+.chip:hover{text-decoration:line-through}
+@media (max-width:760px){#deckwrap{height:460px}.map-callout{position:static;border-radius:0;max-width:none}.split{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="demo-banner">Electoral geography explorer: regional charts and the precinct map are computed from the harmonized demo files, including 2024. Online-voting aggregates are excluded from point maps because they are not physical stations.</div>
+<nav><div class="container">
+  <a class="brand" href="index.html">RED</a>
+  <a class="link" href="index.html">Home</a>
+  <a class="link" href="dashboard.html">Dashboard</a>
+  <a class="link" href="explorer.html">Map Explorer</a>
+  <a class="link" href="panel.html">The Panel</a>
+  <a class="link active" href="geography.html">Geography</a>
+  <a class="link" href="data.html">Data &amp; Downloads</a>
+  <a class="link" href="codebook.html">Codebook</a>
+  <a class="link" href="usage-notes.html">Usage Notes</a>
+  <span class="spacer"></span>
+  <span class="lang">EN · <span class="disabled" title="Russian interface forthcoming">RU soon</span></span>
+</div></nav>
+
+<section class="block"><div class="container">
+  <h2 class="sec">Every polling station RED can place on the map</h2>
+  <p class="sub">Explore RED across three spatial scales: every geocoded polling station, federal-subject summaries, and 25-year regional trajectories. Use valid-vote share for conventional results and registered-voter share when turnout and support should be read together. For a drill-down map with rayon detail and per-precinct panel history, open the <a href="explorer.html">Map Explorer</a>.</p>
+
+  <div class="panel lead-panel">
+    <div class="claim">Map-first view</div>
+    <h3>1 · 85,000+ polling stations, mapped for 2024</h3>
+    <p class="note">Zoom and hover to inspect geocoded precinct returns; 2012, 2018, 2021, and 2024 point files are available in this demo. Online-voting aggregates are not shown because they are not physical polling stations.</p>
+    <div class="controls">
+      <label>Election <select id="pYear"></select></label>
+      <label>Color by <select id="pParty"></select></label>
+      <label>Point size <select id="pSize"><option value="fix">Uniform</option><option value="el">By electorate</option></select></label>
+      <span id="pStatus" class="status-note"></span>
+    </div>
+    <div class="preset-row">
+      <button class="preset" data-map-preset="putin">2024 Putin</button>
+      <button class="preset" data-map-preset="turnout">2024 turnout</button>
+      <button class="preset" data-map-preset="moscow">Zoom to Moscow</button>
+      <button class="preset" data-map-preset="reset">Reset view</button>
+    </div>
+    <div class="legend" id="pLegend"></div>
+    <div id="deckwrap">
+      <div id="map"></div>
+      <div class="map-callout"><b>Try this first</b> Scroll to zoom, drag to rotate the globe. Hover a point for its party share, turnout, and electorate. City and region labels come from the basemap.</div>
+    </div>
+    <div class="source-line"><b>Source:</b> RED v2.0 · geocoded from harmonized polling-station addresses (2012, 2018, 2021, 2024; 2016 not geocoded in this release). Globe projection via MapLibre GL; basemap © OpenFreeMap · © OpenMapTiles · © OpenStreetMap contributors. Online-voting aggregates excluded — they are not physical stations.</div>
+  </div>
+
+  <div class="panel">
+    <h3>2 · Putin's 2024 support as a share of all registered voters</h3>
+    <p class="note">Each tile is one federal subject, arranged to preserve Russia's rough geography. <b>% of valid votes</b> is the conventional result; <b>% of registered voters</b> combines turnout and support; <b>Δ vs previous election</b> shows movement within the same election type.</p>
+    <div class="preset-row">
+      <button class="preset" data-tile-preset="putin-reg">Putin absolute share</button>
+      <button class="preset" data-tile-preset="davankov-valid">Davankov valid share</button>
+      <button class="preset" data-tile-preset="turnout">Turnout</button>
+      <button class="preset" data-tile-preset="delta">Change since previous presidential</button>
+    </div>
+    <div class="controls">
+      <label>Election <select id="mYear"></select></label>
+      <label>Party / candidate <select id="mParty"></select></label>
+      <label>Metric <select id="mMetric">
+        <option value="valid">% of valid votes</option>
+        <option value="reg">% of registered voters</option>
+        <option value="turnout">Turnout %</option>
+        <option value="delta">Δ vs previous election (pp)</option>
+      </select></label>
+    </div>
+    <div class="legend" id="mLegend"></div>
+    <div class="tilemap" id="tilemap"></div>
+    <div class="foot">Click a tile to add that region to the trajectory chart below. Online-voting rows are included in regional totals; hover for details.</div>
+  </div>
+
+  <div class="panel">
+    <h3>3 · Regional differences narrow as the regime consolidates</h3>
+    <p class="note">Left: selected regions' trajectories for the chosen party. Right: the cross-regional standard deviation, a compact view of regional convergence over time.</p>
+    <div class="controls">
+      <label>Party / candidate <select id="tParty"></select></label>
+      <label>Metric <select id="tMetric"><option value="valid">% of valid votes</option><option value="reg">% of registered voters</option></select></label>
+      <label>Add region <input list="tRegList" id="tRegInp" placeholder="type a region…"><datalist id="tRegList"></datalist></label>
+    </div>
+    <div class="preset-row">
+      <button class="preset" data-regions="Moscow,Chechnya,Tatarstan">Moscow · Chechnya · Tatarstan</button>
+      <button class="preset" data-regions="Moscow,SPb,Novosibirsk">Major cities</button>
+      <button class="preset" data-regions="Dagestan,Chechnya,Ingushetia">North Caucasus</button>
+    </div>
+    <div class="chips" id="tChips"></div>
+    <div class="split">
+      <div id="chTraj" class="chart" style="min-height:340px"></div>
+      <div id="chConv" class="chart" style="min-height:340px"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>4 · United Russia's regional map consolidates over time</h3>
+    <p class="note">Same tile layout, every election the party contested, on a fixed color scale. Try KPRF or Yabloko for shrinking opposition maps.</p>
+    <div class="preset-row">
+      <button class="preset" data-party-preset="UR">United Russia</button>
+      <button class="preset" data-party-preset="KPRF">KPRF</button>
+      <button class="preset" data-party-preset="Yabloko">Yabloko</button>
+      <button class="preset" data-party-preset="Putin">Putin</button>
+    </div>
+    <div class="controls">
+      <label>Party / candidate <select id="smParty"></select></label>
+      <label>Metric <select id="smMetric"><option value="valid">% of valid votes</option><option value="reg">% of registered voters</option></select></label>
+    </div>
+    <div class="mmgrid" id="smGrid"></div>
+    <div class="legend" id="smLegend"></div>
+  </div>
+
+  <div class="panel">
+    <h3>5 · Precinct result distributions expose bunching and tails</h3>
+    <p class="note">Histogram of a party's share of valid votes across all precincts. The default comparison shows Putin and Davankov in 2024; log scale reveals rare bins and excess bunching.</p>
+    <div class="controls">
+      <label>Election <select id="hYear"></select></label>
+      <label>Party <select id="hParty"></select></label>
+      <button id="hAdd" class="btn primary" style="padding:6px 14px;font-size:.85rem;border:0;cursor:pointer">Add series</button>
+      <button id="hClear" class="btn ghost" style="padding:6px 14px;font-size:.85rem;border:1px solid var(--line);color:var(--ink);cursor:pointer">Clear</button>
+      <label><input type="checkbox" id="hLog"> log scale</label>
+    </div>
+    <div id="chHistP" class="chart" style="min-height:380px"></div>
+  </div>
+
+  <div class="panel">
+    <h3>6 · High-turnout precincts tell different stories for incumbents and opposition</h3>
+    <p class="note">The 2D fingerprint generalized to any major party. Incumbent patterns and opposition patterns should be read as distributional indicators, not precinct-level verdicts.</p>
+    <div class="controls">
+      <label>Election <select id="fYear"></select></label>
+      <label>Party <select id="fParty"></select></label>
+    </div>
+    <div id="chFinger" class="chart" role="img" aria-label="Heatmap: polling stations binned by turnout and the selected party's share of valid votes" style="min-height:540px"></div>
+  </div>
+
+  <div class="panel">
+    <h3>7 · Small and large precincts reveal different support profiles</h3>
+    <p class="note">Party share by polling-station size. Size is a rough urban-rural proxy, not a direct settlement classification.</p>
+    <div class="controls"><label>Election <select id="gYear"></select></label></div>
+    <div id="chGrad" class="chart" style="min-height:380px"></div>
+  </div>
+
+</div></section>
+<footer><div class="container">RED: Russian Electoral Data. Bogatyrev, Tarasenko &amp; Savin, Scientific Data, 2026. Data: <a href="https://doi.org/10.7910/DVN/DFGNTP">Harvard Dataverse</a>. Code: <a href="https://github.com/georgytarasenko/RED-replication-package">GitHub</a>. License: CC BY 4.0.</div></footer>
+
+<script>
+if(location.protocol==='file:'){document.querySelector('.sub').insertAdjacentHTML('afterend',
+ '<div style="background:#fdecec;border:1px solid #e3b3b3;border-radius:8px;padding:14px 18px;margin-bottom:20px">Open via <a href="http://localhost:8000/geography.html">http://localhost:8000/geography.html</a> — charts cannot load from file://.</div>');}
+
+const RED=REDVIZ.C.incumbent, INK=REDVIZ.C.ink;
+const baseLayout=REDVIZ.layout({margin:{t:34,r:16,b:48,l:56}});
+const nm=p=>REDVIZ.partyName(p);
+const pc=p=>REDVIZ.partyColor(p);
+// sequential + diverging scales — canonical, from red-viz.js (one grammar across map pages)
+const seqCol=t=>REDVIZ.seqColor(t);
+const partySeqCol=(p,t)=>REDVIZ.partySeqColor(p,t);
+const divCol=t=>REDVIZ.divColor(t);
+async function j(f){const r=await fetch('data/'+f);if(!r.ok)throw new Error(f);return r.json();}
+
+(async()=>{
+const [grid,reg,meta,hist,f2d,sizeb]=await Promise.all(
+ ['geo_grid.json','geo_regions.json','geo_meta.json','geo_hist.json','geo_2d.json','geo_sizebins.json'].map(j));
+const YEARS=Object.keys(reg).map(Number).sort((a,b)=>a-b);
+const TYPE={};YEARS.forEach(y=>{TYPE[y]=meta.types[String(y)];});
+const partiesOf=y=>meta.parties_by_year[String(y)]||[];
+const shortName={};grid.forEach(g=>shortName[g.short]=g.region);
+const minX=Math.min(...grid.map(g=>g.x)), maxX=Math.max(...grid.map(g=>g.x));
+const minY=Math.min(...grid.map(g=>g.y)), maxY=Math.max(...grid.map(g=>g.y));
+const NCOL=maxX-minX+1;
+
+function share(y,r,p,metric){
+  const d=reg[y]&&reg[y][r]; if(!d) return null;
+  const v=d['v_'+p]; if(v==null) return null;
+  if(metric==='reg') return 100*v/d.electorate;
+  return 100*v/d.valid;
+}
+function turnoutOf(y,r){const d=reg[y]&&reg[y][r];return d?100*d.turnout/d.electorate:null;}
+function prevYear(y){const same=YEARS.filter(x=>TYPE[x]===TYPE[y]&&x<y);return same.length?same[same.length-1]:null;}
+
+// ---------- 1. tile map ----------
+const mY=document.getElementById('mYear'), mP=document.getElementById('mParty'), mM=document.getElementById('mMetric');
+YEARS.slice().reverse().forEach(y=>mY.add(new Option(`${y} (${TYPE[y]==='pres'?'presidential':'parliamentary'})`,y)));
+function fillParties(sel,y,majorsOnly){const cur=sel.value;sel.innerHTML='';
+ (majorsOnly?partiesOf(y).filter(p=>meta.majors.includes(p)):partiesOf(y)).forEach(p=>sel.add(new Option(nm(p),p)));
+ if([...sel.options].some(o=>o.value===cur))sel.value=cur;}
+function legend(el,lo,hi,col,fmtv){el.innerHTML='';
+ for(let i=0;i<=5;i++){const v=lo+(hi-lo)*i/5;
+  el.insertAdjacentHTML('beforeend',`<div class="sw" style="background:${col(i/5)}"></div><span>${fmtv(v)}</span>`);}}
+function drawTiles(el,y,p,metric,fixedMax,mini){
+  el.style.gridTemplateColumns=`repeat(${NCOL},1fr)`; el.innerHTML='';
+  const vals={},deltas={};
+  grid.forEach(g=>{
+    if(metric==='turnout'){vals[g.short]=turnoutOf(y,g.short);}
+    else if(metric==='delta'){const py=prevYear(y);
+      const a=share(y,g.short,p,'valid'), b=py?share(py,g.short,p,'valid'):null;
+      deltas[g.short]=(a!=null&&b!=null)?a-b:null;}
+    else vals[g.short]=share(y,g.short,p,metric);});
+  let maxv=fixedMax;
+  if(metric==='delta'){const dv=Object.values(deltas).filter(v=>v!=null).map(Math.abs);
+    maxv=Math.max(10,...dv);}
+  else if(!maxv){const vv=Object.values(vals).filter(v=>v!=null);maxv=Math.max(10,...vv);}
+  grid.forEach(g=>{
+    const d=document.createElement('div');d.className='tile';
+    d.style.gridColumn=(g.x-minX+1); d.style.gridRow=(g.y-minY+1);
+    const v=metric==='delta'?deltas[g.short]:vals[g.short];
+    if(v==null){d.style.background=REDVIZ.NODATA;d.classList.add('nodata');d.title=`${g.region}: no data`;}
+    else{d.style.background=metric==='delta'?divCol(v/maxv):(metric==='turnout'?seqCol(v/maxv):partySeqCol(p,v/maxv));
+      d.title=`${g.region}\n${metric==='delta'?'Δ':''}${v.toFixed(1)}${metric==='delta'?' pp':'%'}`;}
+    if(!mini){d.textContent=g.short.slice(0,6);d.onclick=()=>addRegion(g.short);
+      d.setAttribute('role','button');d.tabIndex=0;d.setAttribute('aria-label',`${g.region}: add to trajectory`);
+      d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();addRegion(g.short);}};}
+    el.appendChild(d);});
+  return maxv;
+}
+function redrawMain(){
+  fillParties(mP,mY.value,false);
+  const maxv=drawTiles(document.getElementById('tilemap'),mY.value,mP.value,mM.value,null,false);
+  const L=document.getElementById('mLegend');
+  if(mM.value==='delta')legend(L,-maxv,maxv,t=>divCol(t*2-1),v=>v.toFixed(0)+'pp');
+  else legend(L,0,maxv,mM.value==='turnout'?seqCol:t=>partySeqCol(mP.value,t),v=>v.toFixed(0)+'%');
+}
+mY.onchange=redrawMain; mP.onchange=()=>{const v=mP.value;redrawMain();mP.value=v;drawAfterParty();};
+mM.onchange=redrawMain;
+function drawAfterParty(){const maxv=drawTiles(document.getElementById('tilemap'),mY.value,mP.value,mM.value,null,false);
+  const L=document.getElementById('mLegend');
+  if(mM.value==='delta')legend(L,-maxv,maxv,t=>divCol(t*2-1),v=>v.toFixed(0)+'pp');
+  else legend(L,0,maxv,mM.value==='turnout'?seqCol:t=>partySeqCol(mP.value,t),v=>v.toFixed(0)+'%');}
+
+// ---------- 2. small multiples ----------
+const smP=document.getElementById('smParty'), smM=document.getElementById('smMetric');
+const allParties=[...new Set(YEARS.flatMap(partiesOf))].sort((a,b)=>nm(a).localeCompare(nm(b)));
+allParties.forEach(p=>smP.add(new Option(nm(p),p)));
+smP.value='UR';
+function drawSM(){
+  const p=smP.value, yy=YEARS.filter(y=>partiesOf(y).includes(p));
+  let maxv=0;yy.forEach(y=>grid.forEach(g=>{const v=share(y,g.short,p,smM.value);if(v>maxv)maxv=v;}));
+  const G=document.getElementById('smGrid');G.innerHTML='';
+  yy.forEach(y=>{const w=document.createElement('div');
+    const m=document.createElement('div');m.className='tilemap mini';
+    drawTiles(m,y,p,smM.value,maxv,true);
+    const c=document.createElement('div');c.className='cap';c.textContent=y;
+    w.appendChild(m);w.appendChild(c);G.appendChild(w);});
+  legend(document.getElementById('smLegend'),0,maxv,t=>partySeqCol(p,t),v=>v.toFixed(0)+'%');
+}
+smP.onchange=drawSM; smM.onchange=drawSM;
+
+// ---------- 3. trajectories ----------
+const tP=document.getElementById('tParty'), tM=document.getElementById('tMetric'),
+      tI=document.getElementById('tRegInp'), tC=document.getElementById('tChips');
+allParties.forEach(p=>tP.add(new Option(nm(p),p))); tP.value='UR';
+grid.slice().sort((a,b)=>a.short.localeCompare(b.short)).forEach(g=>
+  document.getElementById('tRegList').appendChild(new Option(g.short)));
+let selRegions=['Moscow','Chechnya'].filter(r=>shortName[r]);
+if(!selRegions.length) selRegions=[grid[0].short];
+function addRegion(r){if(!selRegions.includes(r)&&shortName[r]){if(selRegions.length>=7)selRegions.shift();
+  selRegions.push(r);drawTraj();}}
+window.addRegion=addRegion;
+tI.onchange=()=>{addRegion(tI.value);tI.value='';};
+function drawTraj(){
+  tC.innerHTML=selRegions.map(r=>`<span class="chip" onclick="rmRegion('${r}')">${r} ✕</span>`).join('');
+  const p=tP.value, metric=tM.value;
+  const traces=selRegions.map(r=>({x:YEARS.filter(y=>share(y,r,p,metric)!=null).map(String),
+    y:YEARS.filter(y=>share(y,r,p,metric)!=null).map(y=>share(y,r,p,metric)),
+    name:r,mode:'lines+markers'}));
+  // national line
+  const natx=[],naty=[];
+  YEARS.forEach(y=>{if(!partiesOf(y).includes(p))return;
+    let v=0,d=0;grid.forEach(g=>{const rr=reg[y][g.short];if(rr&&rr['v_'+p]!=null){v+=rr['v_'+p];
+      d+=metric==='reg'?rr.electorate:rr.valid;}});
+    if(d>0){natx.push(String(y));naty.push(100*v/d);}});
+  traces.push({x:natx,y:naty,name:'RUSSIA',mode:'lines',line:{color:pc(p),width:3,dash:'dash'}});
+  Plotly.newPlot('chTraj',traces,{...baseLayout,title:{text:`${nm(p)} — ${metric==='reg'?'% of registered':'% of valid'}`,font:{size:13}},
+    yaxis:{title:'%',rangemode:'tozero'},height:340,legend:{font:{size:10}}},{displayModeBar:false,responsive:true});
+  // convergence: cross-regional (unweighted) std
+  const sx=[],sy=[];
+  YEARS.forEach(y=>{if(!partiesOf(y).includes(p))return;
+    const vv=grid.map(g=>share(y,g.short,p,metric)).filter(v=>v!=null);
+    if(vv.length>10){const mu=vv.reduce((a,b)=>a+b,0)/vv.length;
+      sx.push(String(y));sy.push(Math.sqrt(vv.reduce((a,b)=>a+(b-mu)**2,0)/vv.length));}});
+  Plotly.newPlot('chConv',[{x:sx,y:sy,mode:'lines+markers',line:{color:pc(p),width:3}}],
+    {...baseLayout,title:{text:'Cross-regional std. deviation (pp)',font:{size:13}},
+     yaxis:{rangemode:'tozero'},height:340},{displayModeBar:false,responsive:true});
+}
+window.rmRegion=r=>{selRegions=selRegions.filter(x=>x!==r);drawTraj();};
+tP.onchange=drawTraj; tM.onchange=drawTraj;
+
+// ---------- 4. precinct map: MapLibre globe + OpenFreeMap labelled basemap ----------
+const pY=document.getElementById('pYear'), pP=document.getElementById('pParty'),
+      pS=document.getElementById('pSize'), pST=document.getElementById('pStatus');
+const GEO_YEARS=[2024,2021,2018,2012].filter(y=>YEARS.includes(y)); // 2016 not geocoded in this release
+[2024,2021,2018].forEach(y=>{ if(GEO_YEARS.includes(y)) pY.add(new Option(String(y),String(y))); });
+{ const o=new Option('2016 — no coordinates','2016'); o.disabled=true; pY.add(o); }
+if(GEO_YEARS.includes(2012)) pY.add(new Option('2012','2012'));
+const ptsCache={};
+let map=null, mapReady=false, curP=null, curFC=null, curSel='Putin';
+
+function colorExprFor(sel){
+  const stops=sel==='__turnout' ? ['#faf9f7','#e8c9b8','#c65b4e','#4a0812'] : REDVIZ.partyStops(sel);
+  return ['case',['<',['get','val'],0],'#b7b1a8',
+    ['interpolate',['linear'],['get','val'],0,stops[0],175,stops[1],385,stops[2],700,stops[3]]];
+}
+function radiusExpr(){
+  if(pS.value==='el'){
+    return ['*',
+      ['interpolate',['linear'],['zoom'],2,0.35,5,0.8,8,1.5,12,2.4],
+      ['max',1,['/',['sqrt',['get','el']],9]] ];
+  }
+  return ['interpolate',['exponential',1.25],['zoom'],2,1.2,4,2,6,3.3,9,5.5,13,8];
+}
+function valAt(P,sel,i){return sel==='__turnout'?P.t[i]:(P.v[sel]?P.v[sel][i]:-1);}
+
+function buildFC(P){
+  const n=P.lon.length, feats=new Array(n);
+  for(let i=0;i<n;i++){ let lon=P.lon[i]; if(lon>180)lon-=360;
+    feats[i]={type:'Feature',geometry:{type:'Point',coordinates:[lon,P.lat[i]]},
+      properties:{el:P.el[i],t:P.t[i],val:0}}; }
+  return {type:'FeatureCollection',features:feats};
+}
+function recolor(){
+  if(!curP||!curFC)return;
+  const P=curP, sel=curSel, f=curFC.features;
+  for(let i=0;i<f.length;i++) f[i].properties.val=valAt(P,sel,i);
+  if(map&&map.getSource('pts')) map.getSource('pts').setData(curFC);
+}
+async function loadYear(){
+  const y=pY.value; pST.textContent='loading…';
+  if(!ptsCache[y]){ try{ptsCache[y]=await j(`geo_points_${y}.json`);}catch(e){pST.textContent='points not built yet — run scripts/build_geo_data.py';return null;} }
+  const P=ptsCache[y]; curP=P; curFC=buildFC(P);
+  const cur=pP.value; pP.innerHTML='';
+  Object.keys(P.v).forEach(p=>pP.add(new Option(nm(p),p)));
+  pP.add(new Option('Turnout','__turnout'));
+  if([...pP.options].some(o=>o.value===cur))pP.value=cur;
+  else if([...pP.options].some(o=>o.value==='Putin'))pP.value='Putin';
+  curSel=pP.value;
+  recolor();
+  if(map&&map.getLayer('pts'))map.setPaintProperty('pts','circle-color',colorExprFor(curSel));
+  pST.textContent=`${P.lon.length.toLocaleString()} polling stations`;
+  legend(document.getElementById('pLegend'),0,70,curSel==='__turnout'?seqCol:t=>partySeqCol(curSel,t),v=>v.toFixed(0)+'%+');
+  return P;
+}
+function ensureLayer(){
+  if(map.getSource('pts'))return;
+  map.addSource('pts',{type:'geojson',data:curFC||{type:'FeatureCollection',features:[]}});
+  map.addLayer({id:'pts',type:'circle',source:'pts',
+    paint:{'circle-radius':radiusExpr(),'circle-color':colorExprFor(curSel),'circle-opacity':0.82,'circle-stroke-width':0}});
+  const pop=new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:8});
+  map.on('mousemove','pts',e=>{ map.getCanvas().style.cursor='pointer'; const f=e.features[0]; const val=+f.properties.val;
+    pop.setLngLat(e.lngLat).setHTML(`<b>${curSel==='__turnout'?'Turnout':nm(curSel)}: ${(val/10).toFixed(1)}%</b><br>electorate ${(+f.properties.el).toLocaleString()} · turnout ${(f.properties.t/10).toFixed(1)}%`).addTo(map); });
+  map.on('mouseleave','pts',()=>{map.getCanvas().style.cursor='';pop.remove();});
+}
+function forceEnglishBasemapLabels(targetMap){
+  const englishText=['coalesce',['get','name_en'],['get','name:en'],['get','name:latin'],['get','name']];
+  (targetMap.getStyle().layers || []).forEach(layer=>{
+    const textField=layer.layout && layer.layout['text-field'];
+    if(layer.type==='symbol' && textField && JSON.stringify(textField).includes('name')){
+      try{ targetMap.setLayoutProperty(layer.id,'text-field',englishText); }catch(e){}
+    }
+  });
+}
+function initMap(){
+  map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/positron',
+    center:[93,66],zoom:2.1,attributionControl:true,dragRotate:true});
+  map.addControl(new maplibregl.NavigationControl({visualizePitch:false}),'top-right');
+  map.on('style.load',()=>{ forceEnglishBasemapLabels(map); try{map.setProjection({type:'globe'});}catch(e){} });
+  map.on('load',async()=>{ mapReady=true; await loadYear(); ensureLayer(); });
+  map.on('error',()=>{ pST.textContent='basemap unavailable (needs internet)'; });
+}
+pY.onchange=async()=>{ await loadYear(); };
+pP.onchange=()=>{ curSel=pP.value; recolor(); if(map&&map.getLayer('pts'))map.setPaintProperty('pts','circle-color',colorExprFor(curSel)); legend(document.getElementById('pLegend'),0,70,curSel==='__turnout'?seqCol:t=>partySeqCol(curSel,t),v=>v.toFixed(0)+'%+'); };
+pS.onchange=()=>{ if(map&&map.getLayer('pts'))map.setPaintProperty('pts','circle-radius',radiusExpr()); };
+
+// ---------- 5. histograms ----------
+const hY=document.getElementById('hYear'), hP=document.getElementById('hParty'), hL=document.getElementById('hLog');
+YEARS.slice().reverse().forEach(y=>hY.add(new Option(y,y)));
+function fillH(){fillParties(hP,hY.value,false);}
+hY.onchange=fillH; fillH();
+let hSeries=[];
+function drawHists(){
+  const bins=[...Array(201)].map((_,i)=>i*0.5+0.25);
+  const traces=hSeries.filter(s=>hist[s.y]&&hist[s.y][s.p]).map((s)=>({x:bins,y:hist[s.y][s.p],name:`${nm(s.p)} ${s.y}`,
+    type:'scatter',mode:'lines',line:{width:2,color:pc(s.p)},fill:'tozeroy',fillcolor:pc(s.p)+'26',opacity:.72}));
+  Plotly.newPlot('chHistP',traces,{...baseLayout,
+    xaxis:{title:'share of valid votes (%)',range:[0,100]},
+    yaxis:{title:'polling stations',type:hL.checked?'log':'linear'},
+    height:380,legend:{orientation:'h',y:1.12}},{displayModeBar:false,responsive:true});
+}
+document.getElementById('hAdd').onclick=()=>{
+  if(hSeries.length>=3)hSeries.shift();
+  hSeries.push({y:hY.value,p:hP.value});drawHists();};
+document.getElementById('hClear').onclick=()=>{hSeries=[];drawHists();};
+hL.onchange=drawHists;
+
+// ---------- 6. fingerprint per party ----------
+const fY=document.getElementById('fYear'), fP=document.getElementById('fParty');
+YEARS.slice().reverse().forEach(y=>fY.add(new Option(y,y)));
+function fillF(){const cur=fP.value;fP.innerHTML='';
+ Object.keys(f2d[fY.value]||{}).forEach(p=>fP.add(new Option(nm(p),p)));
+ if([...fP.options].some(o=>o.value===cur))fP.value=cur;
+ else if([...fP.options].some(o=>o.value==='Putin'))fP.value='Putin';}
+function drawFinger(){
+  const H=(f2d[fY.value]||{})[fP.value]; if(!H)return;
+  const z=H[0].map((_,jc)=>H.map(row=>Math.log10(1+row[jc])));
+  Plotly.newPlot('chFinger',[{z,type:'heatmap',
+    colorscale:REDVIZ.partyScale ? REDVIZ.partyScale(fP.value) : REDVIZ.DENSITY,
+    x:[...Array(100)].map((_,i)=>i+0.5),y:[...Array(100)].map((_,i)=>i+0.5),
+    hovertemplate:'turnout %{x}%, share %{y}%<extra></extra>',showscale:true,
+    colorbar:{title:{text:'polling stations<br>log count'},len:.72,thickness:12}}],
+    {...baseLayout,xaxis:{title:'Turnout (%)',range:[0,100]},
+     yaxis:{title:`${nm(fP.value)} share of valid votes (%)`,range:[0,100],scaleanchor:'x',constrain:'domain'},
+     annotations:[
+       {x:82,y:82,text:'high-turnout pattern',showarrow:true,arrowhead:2,ax:-55,ay:-38,bgcolor:'rgba(255,255,255,.85)',bordercolor:'#e2dfd8',font:{size:11}},
+       {x:45,y:30,text:'main precinct mass',showarrow:true,arrowhead:2,ax:-38,ay:-30,bgcolor:'rgba(255,255,255,.85)',bordercolor:'#e2dfd8',font:{size:11}}
+     ],
+     height:540},{displayModeBar:false,responsive:true});
+}
+fY.onchange=()=>{fillF();drawFinger();}; fP.onchange=drawFinger;
+
+// ---------- 7. size gradient ----------
+const gY=document.getElementById('gYear');
+YEARS.slice().reverse().forEach(y=>gY.add(new Option(y,y)));
+const EDGE_LABELS=['<100','100–299','300–599','600–999','1000–1499','1500–1999','2000–2499','2500+'];
+function drawGrad(){
+  const y=gY.value, d=sizeb.party[y]||{};
+  const traces=Object.entries(d).map(([p,bb])=>({
+    x:EDGE_LABELS,y:bb.map(([v,val])=>val>0?100*v/val:null),
+    name:nm(p),mode:'lines+markers',line:{color:pc(p),width:2},marker:{color:pc(p)}}));
+  Plotly.newPlot('chGrad',traces,{...baseLayout,
+    xaxis:{title:'polling station size (registered voters)'},
+    yaxis:{title:'share of valid votes (%)',rangemode:'tozero'},
+    height:380,legend:{font:{size:10}}},{displayModeBar:false,responsive:true});
+}
+gY.onchange=drawGrad;
+
+// presets and initial draws
+function applyTilePreset(kind){
+  if(kind==='putin-reg'){mY.value='2024';fillParties(mP,mY.value,false);if([...mP.options].some(o=>o.value==='Putin'))mP.value='Putin';mM.value='reg';}
+  if(kind==='davankov-valid'){mY.value='2024';fillParties(mP,mY.value,false);if([...mP.options].some(o=>o.value==='Davankov'))mP.value='Davankov';mM.value='valid';}
+  if(kind==='turnout'){mY.value='2024';fillParties(mP,mY.value,false);if([...mP.options].some(o=>o.value==='Putin'))mP.value='Putin';mM.value='turnout';}
+  if(kind==='delta'){mY.value='2024';fillParties(mP,mY.value,false);if([...mP.options].some(o=>o.value==='Putin'))mP.value='Putin';mM.value='delta';}
+  drawAfterParty();
+  document.querySelectorAll('[data-tile-preset]').forEach(b=>b.classList.toggle('active',b.dataset.tilePreset===kind));
+}
+document.querySelectorAll('[data-tile-preset]').forEach(b=>b.onclick=()=>applyTilePreset(b.dataset.tilePreset));
+document.querySelectorAll('[data-party-preset]').forEach(b=>b.onclick=()=>{
+  const p=b.dataset.partyPreset;
+  if([...smP.options].some(o=>o.value===p)){smP.value=p;drawSM();}
+  document.querySelectorAll('[data-party-preset]').forEach(x=>x.classList.toggle('active',x===b));
+});
+document.querySelectorAll('[data-regions]').forEach(b=>b.onclick=()=>{
+  selRegions=b.dataset.regions.split(',').filter(r=>shortName[r]);
+  drawTraj();
+});
+document.querySelectorAll('[data-map-preset]').forEach(b=>b.onclick=async()=>{
+  const kind=b.dataset.mapPreset;
+  if(kind==='putin'){pY.value='2024';await loadYear();if([...pP.options].some(o=>o.value==='Putin')){pP.value='Putin';curSel='Putin';recolor();} if(map)map.flyTo({center:[93,66],zoom:2.1,speed:1.2});}
+  if(kind==='turnout'){pY.value='2024';await loadYear();pP.value='__turnout';curSel='__turnout';recolor();}
+  if(kind==='moscow'){ if(map)map.flyTo({center:[37.62,55.75],zoom:8,speed:1.2}); }
+  if(kind==='reset'){ if(map)map.flyTo({center:[93,66],zoom:2.1,speed:1.2}); }
+  document.querySelectorAll('[data-map-preset]').forEach(x=>x.classList.toggle('active',x===b));
+});
+
+applyTilePreset('putin-reg');
+smP.value='UR';smM.value='reg';drawSM();document.querySelector('[data-party-preset="UR"]')?.classList.add('active');
+tP.value='UR';tM.value='reg';drawTraj();
+fillF();drawFinger();drawGrad();
+initMap();
+hSeries=[
+  {y:hY.value,p:partiesOf(hY.value).includes('Putin')?'Putin':partiesOf(hY.value)[0]},
+  {y:hY.value,p:partiesOf(hY.value).includes('Davankov')?'Davankov':partiesOf(hY.value)[1]}
+].filter(s=>s.p);
+drawHists();
+})();
+</script>
+</body>
+</html>

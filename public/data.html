@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data &amp; Docs — RED</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='6'%20fill='%238b1e2d'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='18'%20fill='%23fff'%20text-anchor='middle'%20font-weight='700'%3ER%3C/text%3E%3C/svg%3E">
+<style>
+.doc-jump{position:sticky;top:0;z-index:6;display:flex;flex-wrap:wrap;gap:8px;padding:12px 0;margin-bottom:6px;background:var(--bg);border-bottom:1px solid var(--line)}
+.doc-jump a{font-size:.85rem;padding:6px 14px;border:1px solid var(--line);border-radius:999px;color:var(--red-dark);text-decoration:none;background:#fff;white-space:nowrap}
+.doc-jump a:hover,.doc-jump a.active{background:var(--soft-red);border-color:#d3b9bc;font-weight:700}
+.doc-h{scroll-margin-top:70px;margin:36px 0 14px;padding-top:24px;border-top:2px solid var(--line);font-size:1.4rem}
+.doc-h:first-of-type{border-top:0;padding-top:0;margin-top:18px}
+.doc-h .pill{vertical-align:middle}
+</style>
+</head>
+<body>
+<nav><div class="container">
+  <a class="brand" href="index.html">RED</a>
+  <a class="link" href="index.html">Home</a>
+  <a class="link" href="dashboard.html">Dashboard</a>
+  <a class="link" href="explorer.html">Map Explorer</a>
+  <a class="link active" href="data.html">Data &amp; Docs</a>
+  <span class="spacer"></span>
+  <span class="lang">EN · <span class="disabled" title="Russian interface forthcoming">RU soon</span></span>
+</div></nav>
+
+<section class="block"><div class="container">
+  <h2 class="sec">Data &amp; documentation <span class="pill">RED v2.0 · May 2026</span></h2>
+  <p class="sub">Downloads, the full searchable variable codebook, and usage notes for RED.</p>
+
+  <div class="doc-jump">
+    <a href="#downloads">Downloads</a>
+    <a href="#codebook">Codebook</a>
+    <a href="#usage">Usage notes</a>
+  </div>
+
+  <!-- ============ DOWNLOADS ============ -->
+  <h3 class="doc-h" id="downloads">Download RED v2.0</h3>
+  <p class="sub">Choose RDS for R workflows, CSV for software-agnostic use, the PDF codebook for variable definitions, or GitHub for the full replication pipeline.</p>
+
+  <div class="download-grid">
+    <div class="download-card"><div class="format">R native</div><h3>red.Rds</h3><p>Full harmonized dataset, 1,041,323 rows x 86 variables. Best for R users because types are preserved.</p><a href="https://doi.org/10.7910/DVN/DFGNTP">Open on Dataverse</a></div>
+    <div class="download-card"><div class="format">CSV UTF-8</div><h3>red.csv</h3><p>Same data in a software-agnostic format for Python, Stata, spreadsheets, and database import.</p><a href="https://doi.org/10.7910/DVN/DFGNTP">Open on Dataverse</a></div>
+    <div class="download-card"><div class="format">Reference</div><h3>RED__Codebook.pdf</h3><p>Variable definitions, year coverage, and source notes for every field in the release.</p><a href="https://doi.org/10.7910/DVN/DFGNTP">Open on Dataverse</a></div>
+    <div class="download-card"><div class="format">Replication</div><h3>GitHub package</h3><p>Raw-data processing, intermediate files, scripts, and the pipeline from CEC returns to RED.</p><a href="https://github.com/georgytarasenko/RED-replication-package">Open GitHub</a></div>
+  </div>
+
+  <div class="cite" style="margin-bottom:24px">
+    <b>Using RED in research, reporting, or teaching?</b> Download the data from Dataverse, cite the Scientific Data article, and use the GitHub replication package for the full processing pipeline.
+<pre>Bogatyrev, Konstantin, Georgy Tarasenko, and Nikita Savin. 2026.
+RED: Russian Electoral Data. Scientific Data. https://doi.org/10.7910/DVN/DFGNTP</pre>
+  </div>
+
+  <div class="panel">
+    <h3>File inventory</h3>
+    <table class="tbl">
+      <tr><th>File</th><th>Format</th><th>Description</th><th>Where</th></tr>
+      <tr><td><code class="inline">red.Rds</code></td><td>R (native)</td><td>Full harmonized dataset, 1,041,323 rows × 86 variables</td><td><a href="https://doi.org/10.7910/DVN/DFGNTP">Dataverse</a></td></tr>
+      <tr><td><code class="inline">red.csv</code></td><td>CSV (UTF-8)</td><td>Same data, software-agnostic</td><td><a href="https://doi.org/10.7910/DVN/DFGNTP">Dataverse</a></td></tr>
+      <tr><td><code class="inline">RED__Codebook.pdf</code></td><td>PDF</td><td>Variable definitions and years of availability</td><td><a href="https://doi.org/10.7910/DVN/DFGNTP">Dataverse</a></td></tr>
+      <tr><td>Replication package</td><td>R scripts + data</td><td>Full pipeline from raw CEC scrapes to <code class="inline">red.Rds</code></td><td><a href="https://github.com/georgytarasenko/RED-replication-package">GitHub</a></td></tr>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h3>Quick start</h3>
+    <p class="note">One row = one polling station (UIK) in one election year.</p>
+    <table class="tbl"><tr><th>R</th><th>Python</th><th>Stata</th></tr>
+    <tr>
+      <td><pre style="font-size:.8rem">red &lt;- readRDS("red.Rds")
+subset(red, year == 2024)</pre></td>
+      <td><pre style="font-size:.8rem">import pandas as pd
+red = pd.read_csv("red.csv")
+red[red.year == 2024]</pre></td>
+      <td><pre style="font-size:.8rem">import delimited red.csv
+keep if year == 2024</pre></td>
+    </tr></table>
+  </div>
+
+  <div class="panel">
+    <h3>Coverage</h3>
+    <table class="tbl" id="tblCov"><tr><th>Year</th><th>Election</th><th>Regions</th><th>TIKs</th><th>UIKs</th></tr></table>
+  </div>
+
+  <div class="panel" id="sources">
+    <h3>Sources</h3>
+    <table class="tbl">
+      <tr><th>Data</th><th>Years</th><th>Source</th></tr>
+      <tr><td>Election returns (excl. Yakutia 2000)</td><td>2000–2021</td><td>Scraped by Sergey Shpilkin from the CEC (via <a href="https://github.com/dkobak/elections">Kobak's repository</a>)</td></tr>
+      <tr><td>Yakutia 2000 returns</td><td>2000</td><td>Printed electoral handbook, digitized by the authors</td></tr>
+      <tr><td>Election returns</td><td>2024</td><td>Scraped by Ivan Shukshin from the CEC</td></tr>
+      <tr><td>Polling station addresses</td><td>2012</td><td>GIS-Lab (webvybory2012.ru)</td></tr>
+      <tr><td>Polling station addresses</td><td>2016–2024</td><td>Shukshin's "Electoral Commissions" database</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ CODEBOOK ============ -->
+  <h3 class="doc-h" id="codebook">Codebook <span class="pill" id="varCount"></span></h3>
+  <p class="sub">Search by name, concept, group, and year coverage; use the task chips to distinguish identifiers, geography, turnout fields, votes, and appended online-voting aggregates.</p>
+  <div class="task-chips">
+    <button class="task-chip" data-q="" data-group="Precinct identifiers">Panel IDs</button>
+    <button class="task-chip" data-q="online" data-group="">Online voting</button>
+    <button class="task-chip" data-q="" data-group="Geographic & administrative">Geocoding</button>
+    <button class="task-chip" data-q="" data-group="Turnout & ballots">Turnout fields</button>
+    <button class="task-chip" data-q="" data-group="Votes">Vote variables</button>
+  </div>
+  <div class="controls">
+    <input type="text" id="q" placeholder="Search variables… (e.g. turnout, Putin, tik)" style="min-width:320px">
+    <label>Group <select id="grp"><option value="">All</option></select></label>
+    <span id="count" style="font-size:.85rem;color:var(--muted)"></span>
+  </div>
+  <div class="panel" style="padding:0">
+    <table class="tbl" id="tbl">
+      <thead><tr><th style="width:190px">Variable</th><th style="width:200px">Group</th><th>Description</th><th style="width:170px">Years</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- ============ USAGE NOTES ============ -->
+  <h3 class="doc-h" id="usage">Usage notes</h3>
+  <p class="sub">The dataset is panel-ready, but precinct identifiers, online-voting aggregates, coverage gaps, and forensic indicators require careful handling.</p>
+
+  <div class="checklist">
+    <div class="check-item"><h3>Use harmonized IDs</h3><p>Build panels on <code class="inline">uik</code> and <code class="inline">tik</code>, not source-year identifiers.</p></div>
+    <div class="check-item"><h3>Separate online voting</h3><p>Remote e-voting rows are aggregates, not physical precincts.</p></div>
+    <div class="check-item"><h3>Check coverage</h3><p>Some years and territories require explicit exclusion notes.</p></div>
+    <div class="check-item"><h3>Frame anomalies carefully</h3><p>Forensic charts indicate patterns; they are not legal proof.</p></div>
+  </div>
+
+  <div class="panel">
+    <h3>Panel analysis: use harmonized identifiers</h3>
+    <p class="note">Precinct (<code class="inline">uik</code>) and commission (<code class="inline">tik</code>) identifiers are harmonized to <b>2024 boundaries</b>. Harmonized precinct codes may not match the actual numbers used in earlier years; originals are preserved in <code class="inline">uik_old</code> and <code class="inline">tik_old</code>. Always build panels on the harmonized IDs.</p>
+  </div>
+
+  <div class="panel">
+    <h3>Online voting rows are not precincts</h3>
+    <p class="note">Remote e-voting results are appended as aggregated rows — at the electoral-district level for 2021 and regional level for 2024. <code class="inline">turnout_online</code> is non-zero only in these rows. Do not pool them with regular precinct rows in turnout analyses.</p>
+  </div>
+
+  <div class="panel">
+    <h3>Known coverage gaps</h3>
+    <p class="note">Data for certain regions in 2000 may be incomplete (Chechnya most notably). Yakutia 2000 was recovered from a printed handbook. Territories outside Russia's internationally recognized borders are excluded. In 2024, RED captures 98.2% of the official electorate but 88.6% of official turnout, reflecting excluded territories and non-precinct voting modes.</p>
+  </div>
+
+  <div class="panel">
+    <h3>Boundary changes vs renumbering</h3>
+    <p class="note">Harmonization resolves renumbering, splits, mergers, and renaming — but not precinct <i>boundary redrawing</i>, which is unobservable in the source data and may introduce measurement error in long panels.</p>
+  </div>
+
+  <div class="panel">
+    <h3>Forensic indicators are indicators</h3>
+    <p class="note">Last-digit spikes, integer-percentage anomalies, and turnout–vote-share patterns shown in the dashboard are statistical anomaly indicators. They can be consistent with manipulation, administrative target-setting, reporting artifacts, or other non-random processes; they are not legal proof of fraud at any specific polling station.</p>
+  </div>
+
+  <div class="panel">
+    <h3>Found an issue?</h3>
+    <p class="note">The dataset is actively maintained. Please open an issue on <a href="https://github.com/georgytarasenko/RED-replication-package/issues">GitHub</a> or contact the authors.</p>
+  </div>
+</div></section>
+
+<footer><div class="container">RED: Russian Electoral Data. Bogatyrev, Tarasenko &amp; Savin, Scientific Data, 2026. Data: <a href="https://doi.org/10.7910/DVN/DFGNTP">Harvard Dataverse</a>. Code: <a href="https://github.com/georgytarasenko/RED-replication-package">GitHub</a>. License: CC BY 4.0.</div></footer>
+<script>
+// Coverage table (downloads)
+fetch('data/coverage.json').then(r=>r.json()).then(cov=>{
+  const t=document.getElementById('tblCov');
+  cov.forEach(r=>{t.insertAdjacentHTML('beforeend',
+    `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3].toLocaleString()}</td><td>${r[4].toLocaleString()}</td></tr>`)});
+  t.insertAdjacentHTML('beforeend','<tr><td><b>Overall</b></td><td></td><td><b>912</b></td><td><b>29,492</b></td><td><b>1,041,323</b></td></tr>');
+});
+
+// Codebook search
+let rows=[];
+const tb=document.querySelector('#tbl tbody'), q=document.getElementById('q'),
+      g=document.getElementById('grp'), cnt=document.getElementById('count');
+function render(){
+  const s=q.value.toLowerCase(), gr=g.value;
+  const f=rows.filter(r=>(!gr||r.group===gr)&&(!s||(r.variable+' '+r.group+' '+r.description+' '+r.years).toLowerCase().includes(s)));
+  tb.innerHTML=f.map(r=>`<tr><td><code class="inline">${r.variable}</code></td><td><span class="grp">${r.group}</span></td><td>${r.description}</td><td style="font-size:.8rem;color:var(--muted)">${r.years}</td></tr>`).join('');
+  cnt.textContent=f.length+' of '+rows.length+' variables';
+}
+fetch('data/codebook.json').then(r=>r.json()).then(d=>{
+  const order={'Election identifiers':0,'Geographic & administrative':1,'Precinct identifiers':2,'Turnout & ballots':3,'Votes':4,'Sources':5};
+  rows=d.sort((a,b)=>(order[a.group]-order[b.group])||a.variable.localeCompare(b.variable));
+  [...new Set(rows.map(r=>r.group))].forEach(x=>g.add(new Option(x,x)));
+  document.getElementById('varCount').textContent=rows.length+' variables';
+  render();
+});
+q.oninput=render; g.onchange=render;
+document.querySelectorAll('.task-chip').forEach(btn=>btn.onclick=()=>{
+  q.value=btn.dataset.q;
+  g.value=btn.dataset.group;
+  render();
+  document.getElementById('codebook').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+// Jump-nav active state on scroll
+const jumpLinks=[...document.querySelectorAll('.doc-jump a')];
+const secs=jumpLinks.map(a=>document.querySelector(a.getAttribute('href')));
+function onScroll(){
+  let i=0;
+  secs.forEach((s,k)=>{ if(s.getBoundingClientRect().top<=90) i=k; });
+  jumpLinks.forEach((a,k)=>a.classList.toggle('active',k===i));
+}
+window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+</script>
+</body>
+</html>

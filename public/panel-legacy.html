@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Panel — how RED harmonizes 25 years of precincts</title>
+<meta property="og:title" content="RED — The Panel: harmonizing 25 years of Russian precincts">
+<meta property="og:description" content="Shifting precinct identifiers, stitched into one continuous panel. The core contribution of RED, made visible.">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='6'%20fill='%238b1e2d'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='18'%20fill='%23fff'%20text-anchor='middle'%20font-weight='700'%3ER%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+<div class="demo-banner">The thread and flow diagrams below are <b>schematic illustrations of RED's linkage logic</b>, not one precinct's real returns. The coverage matrix uses published RED figures.</div>
+<nav><div class="container">
+  <a class="brand" href="index.html">RED</a>
+  <a class="link" href="index.html">Home</a>
+  <a class="link" href="dashboard.html">Dashboard</a>
+  <a class="link" href="explorer.html">Map Explorer</a>
+  <a class="link active" href="panel.html">The Panel</a>
+  <a class="link" href="geography.html">Geography</a>
+  <a class="link" href="data.html">Data &amp; Downloads</a>
+  <a class="link" href="codebook.html">Codebook</a>
+  <a class="link" href="usage-notes.html">Usage Notes</a>
+  <span class="spacer"></span>
+  <span class="lang">EN · <span class="disabled" title="Russian interface forthcoming">RU soon</span></span>
+</div></nav>
+
+<section class="block" style="padding-bottom:24px"><div class="container">
+  <div class="eyebrow-sec" data-num="00"><span>The core contribution</span><span class="rule"></span></div>
+  <h2 class="sec" style="font-size:2rem;max-width:16ch">A polling station keeps changing its number. RED keeps its identity.</h2>
+  <p class="sub" style="max-width:70ch">Russia's Central Election Commission renumbers polling stations (UIKs) between elections, respells their addresses, splits and merges them. Every prior researcher reconciled this by hand, election by election. RED does it once — linking fragments into stable <code class="inline">precinct_id</code>s by address matching and sequence alignment — so that turnout, vote share, geography and anomaly indicators can all be followed across 25 years. Everything on the rest of this site is downstream of the work shown here.</p>
+  <div class="mini-metrics">
+    <div class="mini-metric"><div class="v">195,366</div><div class="l">unique harmonized precincts</div></div>
+    <div class="mini-metric"><div class="v">31,237</div><div class="l">followed through all 11 elections</div></div>
+    <div class="mini-metric"><div class="v">78,586</div><div class="l">continuous across the four post-2013 cycles</div></div>
+  </div>
+</div></section>
+
+<!-- FULL-BLEED SHOWPIECE: THE THREAD -->
+<div class="bleed"><div class="container">
+  <div class="eyebrow-sec" data-num="01"><span>The thread — one precinct, 25 years</span><span class="rule"></span></div>
+  <h3 style="font-size:1.5rem;max-width:24ch">The same polling station, as the CEC published it — and as RED resolves it</h3>
+  <p class="note" id="threadCap" style="max-width:70ch;margin-top:8px">As published, one station appears under <b>four different UIK numbers</b>, with a gap where an election wasn't held. This is the reconciliation problem, in miniature.</p>
+  <div class="thread-toggle" role="group" aria-label="Toggle raw vs harmonized">
+    <button id="tRaw" class="active">Raw CEC record</button>
+    <button id="tRed">RED harmonized ↔</button>
+  </div>
+  <div class="thread-wrap">
+    <svg id="thread" viewBox="0 0 1120 300" width="100%" role="img" aria-label="One precinct across eleven elections, raw fragmented identifiers versus one harmonized thread"></svg>
+    <div class="thread-legend">
+      <span><span class="k" style="background:#378ADD"></span>UIK 1423</span>
+      <span><span class="k" style="background:#1D9E75"></span>UIK 1512</span>
+      <span><span class="k" style="background:#EF9F27"></span>UIK 2210</span>
+      <span><span class="k" style="background:#D4537E"></span>UIK 0087</span>
+      <span><span class="kl" style="background:#c8a44b"></span>RED precinct_id 50231</span>
+    </div>
+  </div>
+  <div class="source-line" style="color:#c7a9ab"><b>Schematic.</b> Illustrates the linkage logic; original codes are retained in <code class="inline" style="background:#2c0e11;color:#f0dcdd">uik_old</code> so every join is auditable. Linkage is probabilistic where addresses are ambiguous.</div>
+</div></div>
+
+<!-- WHY IT'S HARD -->
+<section class="block"><div class="container">
+  <div class="eyebrow-sec" data-num="02"><span>Why harmonization is hard</span><span class="rule"></span></div>
+  <h3 style="font-size:1.4rem">Three kinds of break the linkage has to survive</h3>
+  <p class="sub" style="max-width:70ch">Apparent precinct "turnover" between elections is mostly bookkeeping, not real change. RED separates the two.</p>
+  <div class="hard-grid">
+    <div class="hard-card">
+      <div class="t">Renumbered, same place</div>
+      <div class="rowmap">
+        <div class="before">2018 · UIK 1512 · ul. Lenina 4</div>
+        <div class="before">2021 · UIK 2210 · ул. Ленина, д.4</div>
+        <span class="arrow">↓ address match</span>
+        <div class="after">precinct_id 50231</div>
+      </div>
+    </div>
+    <div class="hard-card">
+      <div class="t">Split / merge</div>
+      <div class="rowmap">
+        <div class="before">2016 · UIK 1801 (1,900 voters)</div>
+        <div class="before">2018 · UIK 1801 + 1802</div>
+        <span class="arrow">↓ sequence alignment</span>
+        <div class="after">two precinct_ids, flagged</div>
+      </div>
+    </div>
+    <div class="hard-card">
+      <div class="t">Respelled address</div>
+      <div class="rowmap">
+        <div class="before">«с. Верхний» vs «с Верхн.»</div>
+        <div class="before">diff. transliteration</div>
+        <span class="arrow">↓ fuzzy match + review</span>
+        <div class="after">one identity, low-confidence flag</div>
+      </div>
+    </div>
+  </div>
+  <div class="source-line"><b>Schematic examples.</b> Real linkage decisions and confidence flags are documented in the replication package.</div>
+</div></section>
+
+<!-- ALLUVIAL -->
+<section class="block" style="padding-top:0"><div class="container">
+  <div class="eyebrow-sec" data-num="03"><span>Renumbering vs. real churn</span><span class="rule"></span></div>
+  <h3 style="font-size:1.4rem">Between two elections, most "new" precinct numbers are old precincts <span class="schematic-tag">schematic</span></h3>
+  <p class="sub" style="max-width:70ch">Left: raw UIK numbers reported in 2021. Right: the same physical stations in 2024. Thick ribbons are renumberings RED links; thin grey strands are genuine new or retired stations.</p>
+  <svg id="alluvial" viewBox="0 0 1080 420" width="100%" role="img" aria-label="Flow diagram linking 2021 raw precinct numbers to 2024 raw numbers via stable RED identities"></svg>
+  <div class="source-line"><b>Schematic proportions.</b> In the harmonized data the large majority of apparent between-election turnover is renumbering, not stations opening or closing.</div>
+</div></section>
+
+<!-- COVERAGE MATRIX -->
+<section class="block" style="padding-top:0"><div class="container">
+  <div class="eyebrow-sec" data-num="04"><span>The payoff</span><span class="rule"></span></div>
+  <h3 style="font-size:1.4rem">Which precincts you can follow, and for how long</h3>
+  <p class="sub" style="max-width:70ch">Each row is a <b>presence pattern</b> — the shape of which elections a precinct appears in, after harmonization. Hover for its story; toggle the sort to compare common patterns against long-running ones.</p>
+  <div class="cov-toggle" role="group" aria-label="Sort coverage rows">
+    <button data-cov-sort="count" class="active">Most common patterns</button>
+    <button data-cov-sort="span">Longest span first</button>
+  </div>
+  <div class="cov-head"><span></span><span>'00</span><span>'03</span><span>'04</span><span>'07</span><span>'08</span><span>'11</span><span>'12</span><span>'16</span><span>'18</span><span>'21</span><span>'24</span><span>precincts</span><span class="cov-story-col">share</span></div>
+  <div id="covRows"></div>
+  <div class="cov-story" id="covStory">Hover a pattern to read what it means. The gold row is the full 25-year panel — the safest starting point for longitudinal precinct analysis.</div>
+  <div class="source-line"><b>Source:</b> RED v2.0 data descriptor, Table 4. Use harmonized <code class="inline">precinct_id</code> for panels; original codes remain in <code class="inline">uik_old</code>.</div>
+</div></section>
+
+<!-- SAFE USE -->
+<section class="block" style="padding-top:0"><div class="container">
+  <div class="eyebrow-sec" data-num="05"><span>Use panels safely</span><span class="rule"></span></div>
+  <div class="checklist">
+    <div class="check-item"><h3>Key on precinct_id, not UIK</h3><p>Raw UIK numbers are reused and reassigned. Join and lag on the harmonized <code class="inline">precinct_id</code>; keep <code class="inline">uik_old</code> to audit any link.</p></div>
+    <div class="check-item"><h3>Start from the full panel</h3><p>The 31,237 all-eleven precincts are the most robust base for fixed-effects and change models. Widen to shorter patterns as your design allows.</p></div>
+    <div class="check-item"><h3>Respect splits &amp; merges</h3><p>Where a station splits or merges, continuity is flagged, not forced. Treat flagged links as measurement error, not clean identity.</p></div>
+    <div class="check-item"><h3>Online voting isn't a precinct</h3><p>Remote e-voting aggregates (2021 district, 2024 regional) are appended and flagged — never mixed into physical panels. See <a href="usage-notes.html">Usage Notes</a>.</p></div>
+  </div>
+  <div class="btn-row" style="margin-top:6px">
+    <a class="btn dark" href="data.html">Download &amp; cite</a>
+    <a class="btn light" href="codebook.html">See precinct_id / uik_old in the codebook</a>
+  </div>
+</div></section>
+
+<footer><div class="container">RED: Russian Electoral Data. Bogatyrev, Tarasenko &amp; Savin, Scientific Data, 2026. Data: <a href="https://doi.org/10.7910/DVN/DFGNTP">Harvard Dataverse</a>. Code: <a href="https://github.com/georgytarasenko/RED-replication-package">GitHub</a>. License: CC BY 4.0.</div></footer>
+
+<script>
+/* ---------- 1. the thread ---------- */
+const yrs=["'00","'03","'04","'07","'08","'11","'12","'16","'18","'21","'24"];
+const raw=["#378ADD","#378ADD","#1D9E75","#1D9E75","#1D9E75",null,"#EF9F27","#EF9F27","#EF9F27","#D4537E","#D4537E"];
+const share=[52,55,58,54,49,null,63,61,72,68,76];
+const svg=document.getElementById('thread');
+const L=70,R=1080,T=40,B=250,n=yrs.length;
+const X=i=>L+(R-L)*i/(n-1), Y=v=>B-(B-T)*(v/100);
+let mode='raw';
+function drawThread(){
+  let s='';
+  for(let i=0;i<n;i++){
+    s+=`<line x1="${X(i)}" y1="${T-12}" x2="${X(i)}" y2="${B+12}" stroke="#3a181b" stroke-width="1"/>`;
+    s+=`<text x="${X(i)}" y="${B+34}" text-anchor="middle" font-size="15" fill="#c7a9ab" font-family="Inter,sans-serif">${yrs[i]}</text>`;
+  }
+  for(let g=0;g<=100;g+=25){s+=`<text x="${L-14}" y="${Y(g)+4}" text-anchor="end" font-size="12" fill="#8a6a6d" font-family="Inter,sans-serif">${g}</text>`;}
+  s+=`<text transform="translate(20,${(T+B)/2}) rotate(-90)" text-anchor="middle" font-size="12" fill="#c7a9ab" font-family="Inter,sans-serif">incumbent share (%)</text>`;
+  if(mode==='red'){
+    let pts=[];for(let i=0;i<n;i++)if(share[i]!=null)pts.push([X(i),Y(share[i])]);
+    const d=pts.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join(' ');
+    s+=`<path d="${d}" fill="none" stroke="#c8a44b" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`;
+    for(const[px,py]of pts)s+=`<circle cx="${px}" cy="${py}" r="6" fill="#c8a44b" stroke="#160607" stroke-width="2"/>`;
+    const gi=share.indexOf(null), gy=(Y(49)+Y(63))/2;
+    s+=`<circle cx="${X(gi)}" cy="${gy}" r="5" fill="none" stroke="#8a6a6d" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+    s+=`<text x="${X(gi)}" y="${gy-14}" text-anchor="middle" font-size="12" fill="#8a6a6d" font-family="Inter,sans-serif">not held</text>`;
+    s+=`<text x="${L}" y="${T-20}" font-size="14" fill="#f0dcdd" font-family="Inter,sans-serif">One precinct_id · one continuous 25-year series</text>`;
+  }else{
+    for(let i=0;i<n;i++){
+      if(raw[i]==null){s+=`<text x="${X(i)}" y="${(T+B)/2}" text-anchor="middle" font-size="16" fill="#8a6a6d">—</text>`;continue;}
+      const py=Y(share[i]);
+      s+=`<rect x="${X(i)-15}" y="${py-13}" width="30" height="26" rx="4" fill="${raw[i]}" opacity="0.92"/>`;
+    }
+    s+=`<text x="${L}" y="${T-20}" font-size="14" fill="#f0dcdd" font-family="Inter,sans-serif">Four raw UIK numbers · no stable key · one gap</text>`;
+  }
+  svg.innerHTML=s;
+}
+function setThread(m){mode=m;
+  document.getElementById('tRaw').classList.toggle('active',m==='raw');
+  document.getElementById('tRed').classList.toggle('active',m==='red');
+  document.getElementById('threadCap').innerHTML = m==='red'
+    ? 'RED links the fragments by <b>address match + sequence alignment</b> into one identity; the raw codes stay in <code class="inline" style="background:#2c0e11;color:#f0dcdd">uik_old</code> so the join is auditable.'
+    : 'As published, one station appears under <b>four different UIK numbers</b>, with a gap where an election wasn\'t held. This is the reconciliation problem, in miniature.';
+  drawThread();
+}
+document.getElementById('tRaw').onclick=()=>setThread('raw');
+document.getElementById('tRed').onclick=()=>setThread('red');
+drawThread();
+
+/* ---------- 2. alluvial (schematic) ---------- */
+(function(){
+  const s=document.getElementById('alluvial');
+  const LX=150, RX=930, top=40, h=340;
+  const left=[['1801',0.20],['1802',0.16],['2210',0.22],['3005',0.18],['—',0.10],['4110',0.14]];
+  const right=[['2201',0.20],['2202',0.16],['1150',0.22],['3005',0.18],['9001',0.10],['—',0.14]];
+  // links: [leftIdx, rightIdx, weight, type] type: 'link' renumber, 'new'/'retire' grey
+  const links=[[0,0,0.20,'link'],[1,1,0.16,'link'],[2,2,0.22,'link'],[3,3,0.18,'link'],[4,4,0.10,'new'],[5,5,0.14,'retire']];
+  function stacks(arr,x){let y=top,out=[];arr.forEach(([lab,w],i)=>{const bh=w*h;out.push({lab,y,bh,cx:x});y+=bh+8;});return out;}
+  const Ls=stacks(left,LX), Rs=stacks(right,RX);
+  let g='';
+  g+=`<text x="${LX}" y="24" text-anchor="middle" font-size="14" fill="#5c5c66" font-family="Inter,sans-serif">2021 · raw UIK</text>`;
+  g+=`<text x="${RX}" y="24" text-anchor="middle" font-size="14" fill="#5c5c66" font-family="Inter,sans-serif">2024 · raw UIK</text>`;
+  g+=`<text x="${(LX+RX)/2}" y="24" text-anchor="middle" font-size="13" fill="#8b1e2d" font-family="Inter,sans-serif" font-weight="600">RED links →</text>`;
+  links.forEach(([li,ri,w,type])=>{
+    const a=Ls[li], b=Rs[ri];
+    const col = type==='link' ? '#c65b4e' : '#c9c3b8';
+    const op = type==='link' ? 0.55 : 0.5;
+    const x1=a.cx+34, x2=b.cx-34, y1=a.y+a.bh/2, y2=b.y+b.bh/2, mx=(x1+x2)/2;
+    const sw=Math.max(4,w*h);
+    g+=`<path d="M${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-opacity="${op}"/>`;
+  });
+  [[Ls,left,-1],[Rs,right,1]].forEach(([S,arr,dir])=>{
+    S.forEach((nd,i)=>{
+      const isGap=arr[i][0]==='—';
+      g+=`<rect x="${nd.cx-34}" y="${nd.y}" width="68" height="${nd.bh}" rx="4" fill="${isGap?'#ece5dd':'#8b1e2d'}"/>`;
+      g+=`<text x="${nd.cx}" y="${nd.y+nd.bh/2+4}" text-anchor="middle" font-size="12" fill="${isGap?'#8a827a':'#fff'}" font-family="Inter,sans-serif" font-variant-numeric="tabular-nums">${arr[i][0]}</text>`;
+    });
+  });
+  // legend
+  g+=`<g font-family="Inter,sans-serif" font-size="12" fill="#5c5c66">
+    <rect x="150" y="392" width="22" height="10" rx="2" fill="#c65b4e" opacity="0.55"/><text x="180" y="401">renumbered (same station, linked)</text>
+    <rect x="470" y="392" width="22" height="10" rx="2" fill="#c9c3b8"/><text x="500" y="401">genuinely new / retired</text></g>`;
+  s.innerHTML=g;
+})();
+
+/* ---------- 3. coverage matrix ---------- */
+fetch('data/panel.json').then(r=>r.json()).then(panel=>{
+  const covRows=document.getElementById('covRows'), covStory=document.getElementById('covStory');
+  const YRLAB=panel.labels, maxCount=Math.max(...panel.patterns.map(p=>p.count));
+  const fmt=n=>n.toLocaleString('en-US');
+  const nOn=m=>m.filter(Boolean).length;
+  const span=m=>{const on=m.map((x,i)=>x?i:-1).filter(i=>i>=0);return on.length?on[on.length-1]-on[0]+1:0;};
+  function storyFor(p){
+    const on=p.mask.map((m,i)=>m?i:-1).filter(i=>i>=0);
+    const first=YRLAB[on[0]].replace("'","20"), last=YRLAB[on[on.length-1]].replace("'","20");
+    if(nOn(p.mask)===11) return `<b>The full panel.</b> ${fmt(p.count)} precincts appear in every election 2000–2024 — only possible because their shifting IDs were harmonized. The safest base for 25-year precinct analysis.`;
+    if(p.mask[10]&&p.mask[7]&&!p.mask[0]) return `<b>${fmt(p.count)} precincts</b> first appear around ${first} and run to ${last} — a post-2013 cohort (new, split, or unlinkable further back).`;
+    if(!p.mask[10]&&p.mask[0]) return `<b>${fmt(p.count)} precincts</b> observed ${first}–${last} then drop out — retired, merged, or renumbered beyond confident linkage.`;
+    return `<b>${fmt(p.count)} precincts</b> present ${first}–${last} (${nOn(p.mask)} of 11 elections).`;
+  }
+  let covSort='count';
+  function render(){
+    const rows=panel.patterns.slice().sort((a,b)=> covSort==='count'? b.count-a.count : (span(b.mask)-span(a.mask))||(b.count-a.count));
+    covRows.innerHTML=rows.map((p,i)=>{
+      const full=nOn(p.mask)===11;
+      const cells=p.mask.map(m=>`<div class="cov-cell ${m?(full?'on gold':'on'):'off'}"></div>`).join('');
+      const bar=Math.round(100*p.count/maxCount);
+      return `<div class="cov-row" data-orig="${panel.patterns.indexOf(p)}"><div class="idx">${i+1}</div>${cells}<div class="cov-count">${fmt(p.count)}</div><div class="cov-story-col"><div class="cov-densebar"><span style="width:${bar}%"></span></div></div></div>`;
+    }).join('');
+    covRows.querySelectorAll('.cov-row').forEach(r=>{const p=panel.patterns[+r.dataset.orig];r.onmouseenter=()=>covStory.innerHTML=storyFor(p);});
+  }
+  document.querySelectorAll('[data-cov-sort]').forEach(b=>b.onclick=()=>{covSort=b.dataset.covSort;
+    document.querySelectorAll('[data-cov-sort]').forEach(x=>x.classList.toggle('active',x===b));render();});
+  render();
+}).catch(()=>{document.getElementById('covStory').textContent='Open via the local server to load the coverage matrix.';});
+</script>
+</body>
+</html>

@@ -1,0 +1,548 @@
+[
+{
+"variable": "address",
+"group": "Geographic & administrative",
+"description": "Address of the polling station.",
+"years": "2012–2024"
+},
+{
+"variable": "against_all",
+"group": "Turnout & ballots",
+"description": "Number of ballots marked “against all candidates.”",
+"years": "2000, 2003, 2004"
+},
+{
+"variable": "APR",
+"group": "Votes",
+"description": "Total number of votes received by the Agrarian Party of Russia.",
+"years": "2003, 2007"
+},
+{
+"variable": "Baburin",
+"group": "Votes",
+"description": "Total number of votes received by Sergey Baburin.",
+"years": "2018"
+},
+{
+"variable": "BizDev",
+"group": "Votes",
+"description": "Total number of votes received by “Business Development” (Razvitie predprinimatel'stva).",
+"years": "2003"
+},
+{
+"variable": "Bogdanov",
+"group": "Votes",
+"description": "Total number of votes received by Andrei Bogdanov.",
+"years": "2008"
+},
+{
+"variable": "Davankov",
+"group": "Votes",
+"description": "Total number of votes received by Vladislav Davankov.",
+"years": "2024"
+},
+{
+"variable": "DPR",
+"group": "Votes",
+"description": "Total number of votes received by the Democratic Party of Russia.",
+"years": "2003, 2007"
+},
+{
+"variable": "electorate",
+"group": "Turnout & ballots",
+"description": "Number of registered voters in the precinct.",
+"years": "2000–2024"
+},
+{
+"variable": "Glazyev",
+"group": "Votes",
+"description": "Total number of votes received by Sergey Glazyev.",
+"years": "2004"
+},
+{
+"variable": "GrazhdPlatforma",
+"group": "Votes",
+"description": "Total number of votes received by Civic Platform.",
+"years": "2016, 2021"
+},
+{
+"variable": "Grudinin",
+"group": "Votes",
+"description": "Total number of votes received by Pavel Grudinin.",
+"years": "2018"
+},
+{
+"variable": "GS",
+"group": "Votes",
+"description": "Total number of votes received by Civilian Power.",
+"years": "2007, 2016"
+},
+{
+"variable": "invalid",
+"group": "Turnout & ballots",
+"description": "Number of invalid ballots.",
+"years": "2000–2024"
+},
+{
+"variable": "IstinnyePatrioty",
+"group": "Votes",
+"description": "Total number of votes received by “True Patriots of Russia.”",
+"years": "2003"
+},
+{
+"variable": "Kharitonov",
+"group": "Votes",
+"description": "Total number of votes received by Nikolai Kharitonov.",
+"years": "2004"
+},
+{
+"variable": "Khakamada",
+"group": "Votes",
+"description": "Total number of votes received by Irina Khakamada.",
+"years": "2004"
+},
+{
+"variable": "KPKR",
+"group": "Votes",
+"description": "Total number of votes received by the Communists of Russia Party.",
+"years": "2016, 2021"
+},
+{
+"variable": "KPRF",
+"group": "Votes",
+"description": "Total number of votes received by the Communist Party (KPRF).",
+"years": "2003–2024"
+},
+{
+"variable": "lat",
+"group": "Geographic & administrative",
+"description": "Latitude of the polling station.",
+"years": "2012–2024"
+},
+{
+"variable": "LDPR",
+"group": "Votes",
+"description": "Total number of votes received by the Liberal Democratic Party (LDPR).",
+"years": "2003–2024"
+},
+{
+"variable": "lon",
+"group": "Geographic & administrative",
+"description": "Longitude of the polling station.",
+"years": "2012–2024"
+},
+{
+"variable": "Malyshkin",
+"group": "Votes",
+"description": "Total number of votes received by Oleg Malyshkin.",
+"years": "2004"
+},
+{
+"variable": "Medvedev",
+"group": "Votes",
+"description": "Total number of votes received by Dmitry Medvedev.",
+"years": "2008"
+},
+{
+"variable": "Medvedev_share",
+"group": "Votes",
+"description": "Share of votes received by Dmitry Medvedev.",
+"years": "2008"
+},
+{
+"variable": "Mironov",
+"group": "Votes",
+"description": "Total number of votes received by Sergey Mironov.",
+"years": "2004"
+},
+{
+"variable": "NKAR",
+"group": "Votes",
+"description": "Total number of votes received by “New Course — Automobile Russia”.",
+"years": "2003"
+},
+{
+"variable": "NovyeLyudi",
+"group": "Votes",
+"description": "Total number of votes received by the New People Party.",
+"years": "2021"
+},
+{
+"variable": "NP",
+"group": "Votes",
+"description": "Total number of votes received by the People's Party of the Russian Federation.",
+"years": "2003"
+},
+{
+"variable": "NRPR",
+"group": "Votes",
+"description": "Total number of votes received by the People's Republican Party of Russia.",
+"years": "2003"
+},
+{
+"variable": "oik",
+"group": "Geographic & administrative",
+"description": "Harmonized State Duma electoral district (okrug) code (indexed to 2024 district boundaries).",
+"years": "2003, 2016, 2021"
+},
+{
+"variable": "oik_old",
+"group": "Geographic & administrative",
+"description": "Original State Duma electoral district (okrug) code from the raw CEC data.",
+"years": "2003, 2016, 2021"
+},
+{
+"variable": "oik_name",
+"group": "Geographic & administrative",
+"description": "Harmonized State Duma electoral district (okrug) name (indexed to 2024 district boundaries, analogous to harmonized territorial commission names).",
+"years": "2003, 2016, 2021"
+},
+{
+"variable": "oik_name_old",
+"group": "Geographic & administrative",
+"description": "Original name of the State Duma single-member electoral district (okrug) as reported in the raw CEC data. Analogous to tik old for okrugs.",
+"years": "2003, 2016, 2021"
+},
+{
+"variable": "Pamfilova",
+"group": "Votes",
+"description": "Total number of votes received by Ella Pamfilova.",
+"years": "2000"
+},
+{
+"variable": "PARNAS",
+"group": "Votes",
+"description": "Total number of votes received by the People's Freedom Party (PARNAS).",
+"years": "2016"
+},
+{
+"variable": "PartiyaPensionerov",
+"group": "Votes",
+"description": "Total number of votes received by the Party of Pensioners.",
+"years": "2021"
+},
+{
+"variable": "Patrioty",
+"group": "Votes",
+"description": "Total number of votes received by the Patriots of Russia.",
+"years": "2007, 2011, 2016"
+},
+{
+"variable": "PDPS",
+"group": "Votes",
+"description": "Total number of votes received by the Right Cause Party (2011) and the Party of Growth (2016, 2021).",
+"years": "2011, 2016, 2021"
+},
+{
+"variable": "PME",
+"group": "Votes",
+"description": "Total number of votes received by the Party of Peace and Unity.",
+"years": "2003"
+},
+{
+"variable": "Prokhorov",
+"group": "Votes",
+"description": "Total number of votes received by Mikhail Prokhorov.",
+"years": "2012"
+},
+{
+"variable": "PSS",
+"group": "Votes",
+"description": "Total number of votes received by the Party of Social Justice.",
+"years": "2007"
+},
+{
+"variable": "Putin",
+"group": "Votes",
+"description": "Total number of votes received by Vladimir Putin.",
+"years": "2000, 2004, 2012, 2018, 2024"
+},
+{
+"variable": "Putin_share",
+"group": "Votes",
+"description": "Share of votes received by Vladimir Putin.",
+"years": "2000, 2004, 2012, 2018, 2024"
+},
+{
+"variable": "PVR",
+"group": "Votes",
+"description": "Total number of votes received by the Party of Russia's Rebirth.",
+"years": "2003"
+},
+{
+"variable": "RCDP",
+"group": "Votes",
+"description": "Total number of votes received by the Russian Constitutional Democratic Party.",
+"years": "2003"
+},
+{
+"variable": "region",
+"group": "Geographic & administrative",
+"description": "Full name of the federal subject in Russian.",
+"years": "2000–2024"
+},
+{
+"variable": "region_eng",
+"group": "Geographic & administrative",
+"description": "Region name in English translation.",
+"years": "2000–2024"
+},
+{
+"variable": "Rodina",
+"group": "Votes",
+"description": "Total number of votes received by the Rodina Party.",
+"years": "2003, 2016, 2021"
+},
+{
+"variable": "RPSS",
+"group": "Votes",
+"description": "Total number of votes received by the Russian Party of Freedom and Justice.",
+"years": "2021"
+},
+{
+"variable": "RPPSS",
+"group": "Votes",
+"description": "Total number of votes received by the Russian Party of Pensioners for Social Justice.",
+"years": "2003, 2016"
+},
+{
+"variable": "Rus",
+"group": "Votes",
+"description": "Total number of votes received by the United Russian Party “Rus'.”",
+"years": "2003"
+},
+{
+"variable": "SLON",
+"group": "Votes",
+"description": "Total number of votes received by the “SLON” Party.",
+"years": "2003"
+},
+{
+"variable": "Slutsky",
+"group": "Votes",
+"description": "Total number of votes received by Leonid Slutsky.",
+"years": "2024"
+},
+{
+"variable": "Sobchak",
+"group": "Votes",
+"description": "Total number of votes received by Ksenia Sobchak.",
+"years": "2018"
+},
+{
+"variable": "source_primary",
+"group": "Sources",
+"description": "Primary data source for the observation (e.g., official CEC website izbirkom.ru or printed electoral handbook for Sakha 2000).",
+"years": "2000–2024"
+},
+{
+"variable": "source_secondary",
+"group": "Sources",
+"description": "Secondary data source for the observation (e.g., precinct-level data scraped by Shpilkin/Kobak from izbirkom.ru).",
+"years": "2000–2024"
+},
+{
+"variable": "SPS",
+"group": "Votes",
+"description": "Total number of votes received by the SPS Party.",
+"years": "2003, 2007"
+},
+{
+"variable": "SR",
+"group": "Votes",
+"description": "Total number of votes received by A Just Russia (including 2021 branding “A Just Russia — For Truth”).",
+"years": "2007–2021"
+},
+{
+"variable": "Suraykin",
+"group": "Votes",
+"description": "Total number of votes received by Maxim Suraykin.",
+"years": "2018"
+},
+{
+"variable": "tik_eng",
+"group": "Geographic & administrative",
+"description": "Territorial commission name in English.",
+"years": "2000–2024"
+},
+{
+"variable": "tik_old",
+"group": "Geographic & administrative",
+"description": "Original name of the territorial electoral commission as reported in the raw CEC data.",
+"years": "2000–2024"
+},
+{
+"variable": "tik_2018",
+"group": "Geographic & administrative",
+"description": "Name of the territorial electoral commission anchored to 2018 administrative boundaries. Retained as an intermediate harmonization key; not recommended for direct analysis.",
+"years": "Subset of 2000–2024"
+},
+{
+"variable": "tik_2021",
+"group": "Geographic & administrative",
+"description": "Name of the territorial electoral commission anchored to 2021 administrative boundaries. Retained as an intermediate harmonization key; not recommended for direct analysis.",
+"years": "Subset of 2000–2024"
+},
+{
+"variable": "tik",
+"group": "Geographic & administrative",
+"description": "Harmonized name of the territorial electoral commission (indexed to 2024 boundaries).",
+"years": "2000–2024"
+},
+{
+"variable": "Titov_B",
+"group": "Votes",
+"description": "Total number of votes received by Boris Titov.",
+"years": "2018"
+},
+{
+"variable": "Titov_K",
+"group": "Votes",
+"description": "Total number of votes received by Konstantin Titov.",
+"years": "2000"
+},
+{
+"variable": "Tuleev",
+"group": "Votes",
+"description": "Total number of votes received by Aman Tuleev.",
+"years": "2000"
+},
+{
+"variable": "turnout",
+"group": "Turnout & ballots",
+"description": "Total number of votes cast (valid + invalid).",
+"years": "2000–2024"
+},
+{
+"variable": "turnout_absentee",
+"group": "Turnout & ballots",
+"description": "Number of absentee votes.",
+"years": "2000–2024"
+},
+{
+"variable": "turnout_early",
+"group": "Turnout & ballots",
+"description": "Number of votes cast early.",
+"years": "2000–2024"
+},
+{
+"variable": "turnout_offsite",
+"group": "Turnout & ballots",
+"description": "Number of votes cast offsite (mobile voting).",
+"years": "2000–2024"
+},
+{
+"variable": "turnout_online",
+"group": "Turnout & ballots",
+"description": "Number of votes cast via the electronic (online) voting system. Nonzero only for aggregated online-voting rows appended to the precinct-level data; regular precinct rows have a value of zero or NA. For 2021, aggregated at the electoral district level; for 2024, at the regional level.",
+"years": "2021, 2024"
+},
+{
+"variable": "turnout_onsite",
+"group": "Turnout & ballots",
+"description": "Number of votes cast onsite (in-person at the polling station).",
+"years": "2000–2024"
+},
+{
+"variable": "turnout_rate",
+"group": "Turnout & ballots",
+"description": "Voter turnout as a percentage of registered voters.",
+"years": "2000–2024"
+},
+{
+"variable": "type",
+"group": "Election identifiers",
+"description": "Type of election — “pres” for presidential, “parl” for parliamentary.",
+"years": "2000–2024"
+},
+{
+"variable": "uik",
+"group": "Precinct identifiers",
+"description": "Harmonized precinct (UIK) number within the territorial commission, indexed to 2024 boundaries.",
+"years": "2000–2024"
+},
+{
+"variable": "uik_old",
+"group": "Precinct identifiers",
+"description": "Original precinct (UIK) number as reported in the raw CEC data for that election year.",
+"years": "2000–2024"
+},
+{
+"variable": "UR",
+"group": "Votes",
+"description": "Total number of votes received by United Russia.",
+"years": "2003–2024"
+},
+{
+"variable": "UR_share",
+"group": "Votes",
+"description": "Share of votes received by United Russia.",
+"years": "2003–2024"
+},
+{
+"variable": "valid",
+"group": "Turnout & ballots",
+"description": "Number of valid ballots.",
+"years": "2000–2024"
+},
+{
+"variable": "VRES",
+"group": "Votes",
+"description": "Total number of votes received by the “Great Russia — Eurasian Union” Party.",
+"years": "2003"
+},
+{
+"variable": "Yabloko",
+"group": "Votes",
+"description": "Total number of votes received by the Yabloko Party.",
+"years": "2003, 2016, 2021"
+},
+{
+"variable": "Yavlinskiy",
+"group": "Votes",
+"description": "Total number of votes received by Grigory Yavlinsky.",
+"years": "2000, 2018"
+},
+{
+"variable": "year",
+"group": "Election identifiers",
+"description": "Year of the election.",
+"years": "2000–2024"
+},
+{
+"variable": "Yedineniye",
+"group": "Votes",
+"description": "Total number of votes received by “Yedineniye.”",
+"years": "2003"
+},
+{
+"variable": "ZaRusSvyuatuyu",
+"group": "Votes",
+"description": "Total number of votes received by “For Holy Rus'.”",
+"years": "2003"
+},
+{
+"variable": "Zelenye",
+"group": "Votes",
+"description": "Total number of votes received by the Green Party.",
+"years": "2007, 2011, 2016, 2021"
+},
+{
+"variable": "ZelAlternativa",
+"group": "Votes",
+"description": "Total number of votes received by the Green Alternative Party.",
+"years": "2021"
+},
+{
+"variable": "Zhirinovsky",
+"group": "Votes",
+"description": "Total number of votes received by Vladimir Zhirinovsky.",
+"years": "2000, 2008, 2012, 2018"
+},
+{
+"variable": "Zyuganov",
+"group": "Votes",
+"description": "Total number of votes received by Gennady Zyuganov.",
+"years": "2000, 2008, 2012, 2018, 2024"
+}
+]

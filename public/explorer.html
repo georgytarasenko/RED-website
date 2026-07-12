@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Map Explorer — RED</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='6'%20fill='%238b1e2d'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='18'%20fill='%23fff'%20text-anchor='middle'%20font-weight='700'%3ER%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<script src="assets/red-viz.js?v=2"></script>
+<link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+<style>
+body.explorer-body{height:100vh;overflow:hidden;background:#f4f2ee}
+.explorer-shell{height:calc(100vh - 132px);display:block;position:relative}
+.explorer-shell > section{height:100%}
+#map{height:100%;min-height:520px;background:#f2f3f0}
+.explorer-side{background:#fff;border-right:1px solid var(--line);overflow:auto;padding:18px 18px 22px}
+.explorer-side h1{font-size:1.45rem;line-height:1.12;margin:8px 0}
+.explorer-side .sub{font-size:.88rem;margin-bottom:16px}
+.map-controls{position:absolute;z-index:3;top:14px;left:14px;width:296px;max-width:calc(100% - 28px);background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:11px;box-shadow:0 12px 30px rgba(0,0,0,.14);padding:13px 14px}
+.map-controls .mc-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--red);font-weight:800;margin-bottom:9px}
+.map-controls label{font-size:.7rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.03em;display:block}
+.map-controls select,.map-controls input[type=text]{width:100%;margin-top:3px}
+.mc-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.mc-search{margin-top:9px}
+.mc-presets{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.mc-presets .preset{font-size:.72rem;padding:4px 9px}
+.mc-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+.map-controls .map-status{margin-top:8px;font-size:.72rem;color:var(--muted)}
+.control-stack{display:grid;gap:10px;margin:16px 0}
+.control-stack label{font-size:.78rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.control-stack select,.control-stack input[type=text]{width:100%;margin-top:4px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg button,.small-action{border:1px solid var(--line);background:#fff;border-radius:6px;padding:8px 9px;font:inherit;font-size:.85rem;cursor:pointer}
+.seg button.active,.small-action.active{background:var(--soft-red);border-color:#d3b9bc;color:var(--red-dark);font-weight:700}
+.map-status{font-size:.8rem;color:var(--muted);margin-top:8px}
+.legend-card{position:absolute;right:18px;bottom:26px;z-index:2;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:8px;padding:12px;min-width:240px;box-shadow:0 10px 24px rgba(0,0,0,.12)}
+.legend-ramp{height:12px;border-radius:999px;margin:8px 0;background:linear-gradient(90deg,#275d82,#faf9f7,#8b1e2d)}
+.legend-ramp.seq{background:linear-gradient(90deg,#faf9f7,#e8c9b8,#c65b4e,#4a0812)}
+.legend-labels{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted)}
+.stat-card{border:1px solid var(--line);border-radius:8px;padding:14px;background:#fbfaf7;margin-top:16px}
+.stat-card h2{font-size:1rem;margin-bottom:4px}
+.stat-kicker{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--red);font-weight:800}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.statbox{background:#fff;border:1px solid var(--line);border-radius:6px;padding:9px}
+.statbox .v{font-size:1.2rem;font-weight:800;color:var(--red-dark);font-variant-numeric:tabular-nums}
+.statbox .l{font-size:.72rem;color:var(--muted)}
+.bench{margin-top:12px;font-size:.83rem;color:var(--muted)}
+.bench b{color:var(--ink)}
+.contest-card{border:1px solid var(--line);border-radius:8px;padding:14px;background:#fff;margin-top:14px}
+.contest-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+.contest-head h2{font-size:.98rem;margin:0}
+.contest-head span{font-size:.72rem;color:var(--muted);white-space:nowrap}
+.contest-wrap{display:grid;grid-template-columns:94px 1fr;gap:12px;align-items:center}
+.donut{width:94px;height:94px;border-radius:50%;position:relative;background:#ece8e0}
+.donut::after{content:"";position:absolute;inset:21px;background:#fff;border-radius:50%;box-shadow:inset 0 0 0 1px var(--line)}
+.donut-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.72rem;font-weight:800;color:var(--red-dark);z-index:1;line-height:1.05}
+.contest-list{display:grid;gap:7px;min-width:0;max-height:176px;overflow:auto;padding-right:2px}
+.contest-row{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:7px;align-items:center;font-size:.78rem}
+.contest-dot{width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+.contest-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.contest-val{font-variant-numeric:tabular-nums;color:var(--muted)}
+.contest-note{font-size:.72rem;color:var(--muted);margin-top:9px}
+.history-card{border:1px solid var(--line);border-radius:8px;padding:14px;background:#fff;margin-top:14px}
+.history-card h2{font-size:.98rem;margin:0 0 4px}
+.history-card .history-sub{font-size:.76rem;color:var(--muted);margin-bottom:10px}
+.history-timeline{display:grid;gap:9px}
+.history-row{border-top:1px solid var(--line);padding-top:9px}
+.history-row:first-child{border-top:0;padding-top:0}
+.history-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.history-year{font-weight:800;color:var(--red-dark);font-size:.88rem}
+.history-key{font-size:.72rem;color:var(--muted);text-align:right}
+.history-address{font-size:.74rem;color:var(--muted);margin:4px 0 7px;line-height:1.35}
+.history-metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.mini-bar{min-width:0}
+.mini-bar b{font-size:.7rem;color:var(--ink);display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.mini-track{height:6px;border-radius:999px;background:#eee9e1;margin-top:3px;overflow:hidden}
+.mini-track span{display:block;height:100%;border-radius:999px;background:var(--red)}
+.uik-drawer{position:absolute;left:22px;right:22px;bottom:22px;z-index:4;max-height:48vh;overflow:auto;background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:10px;box-shadow:0 18px 42px rgba(0,0,0,.18);transform:translateY(calc(100% + 32px));transition:transform .35s ease}
+.uik-drawer.open{transform:translateY(0)}
+.drawer-handle{height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.drawer-handle span{width:44px;height:4px;border-radius:999px;background:#d4cfc7}
+.drawer-body{padding:0 18px 18px}
+.drawer-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:12px}
+.drawer-head h2{font-size:1.25rem;margin:0 0 3px}
+.drawer-head p{font-size:.82rem;color:var(--muted);margin:0}
+.drawer-close{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 9px;cursor:pointer}
+.bench-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.bench-cell{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fbfaf7}
+.bench-cell .l{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:800}
+.bench-cell .v{font-size:1rem;font-weight:850;color:var(--red-dark);font-variant-numeric:tabular-nums}
+.drawer-grid{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:14px;align-items:start}
+.arc-card,.insight-card,.drawer-history{border:1px solid var(--line);border-radius:8px;padding:12px;background:#fff}
+.arc-card h3,.insight-card h3,.drawer-history h3{font-size:.92rem;margin:0 0 9px}
+.arc-wrap{display:grid;grid-template-columns:86px 1fr;gap:10px;align-items:center}
+.open-ring{width:86px;height:86px;border-radius:50%;position:relative;background:#eee9e1}
+.open-ring::after{content:"";position:absolute;inset:20px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.open-ring-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;text-align:center;font-size:.68rem;font-weight:850;color:var(--red-dark);line-height:1.08}
+.arc-list{display:grid;gap:6px}
+.arc-row{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:7px;align-items:center;font-size:.73rem}
+.arc-dot{width:9px;height:9px;border-radius:50%}
+.arc-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arc-val{color:var(--muted);font-variant-numeric:tabular-nums}
+.insight-list{display:grid;gap:7px;font-size:.78rem;color:var(--muted)}
+.insight-list b{color:var(--ink)}
+.drawer-history .history-timeline{max-height:260px;overflow:auto;padding-right:4px}
+.uik-drawer.collapsed{transform:translateY(calc(100% - 22px))}
+.mode-note{font-size:.78rem;color:var(--muted);border-left:3px solid var(--accent);padding-left:10px;margin-top:12px}
+.map-tools{position:absolute;left:378px;top:108px;z-index:2;display:flex;gap:8px;flex-wrap:wrap;max-width:calc(100vw - 420px)}
+.map-tools .preset{box-shadow:0 6px 16px rgba(0,0,0,.10)}
+.loading{position:absolute;inset:0;z-index:3;display:none;align-items:center;justify-content:center;background:rgba(247,246,243,.72);font-weight:800;color:var(--red-dark)}
+.loading.show{display:flex}
+.mapboxgl-popup-content,.maplibregl-popup-content{font:12px Inter,-apple-system,Segoe UI,sans-serif;border-radius:8px;padding:8px 11px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.maplibregl-ctrl-group{border-radius:8px!important}
+@media (max-width:800px){
+  body.explorer-body{overflow:auto}
+  .explorer-shell{height:auto;display:block}
+  .explorer-side{border-right:0;border-bottom:1px solid var(--line)}
+  .map-controls{position:static;width:auto;max-width:none;box-shadow:none;border-radius:0;border-left:0;border-right:0;border-top:0}
+  #map{height:70vh;min-height:460px}
+  .map-tools{position:static;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line);max-width:none}
+  .legend-card{position:static;margin:10px 16px 16px}
+  .uik-drawer{left:10px;right:10px;bottom:10px;max-height:62vh}
+  .drawer-grid,.bench-grid{grid-template-columns:1fr}
+  .drawer-head{display:block}
+}
+
+/* ---- Regional analysis tab (merged from Geography) ---- */
+.view-tabs{background:#fff;border-bottom:1px solid var(--line)}
+.view-tabs .container{display:flex;gap:6px;padding:8px 24px}
+.view-tab{border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 14px;font:inherit;font-size:.85rem;cursor:pointer}
+.view-tab.active{background:var(--soft-red);border-color:#d3b9bc;color:var(--red-dark);font-weight:700}
+body.explorer-body.analysis-mode{height:auto;overflow:visible}
+body.analysis-mode .explorer-shell{display:none}
+.analysis-view{display:none}
+.analysis-view.show{display:block}
+.linklike{background:none;border:0;padding:0;color:var(--red-dark);text-decoration:underline;cursor:pointer;font:inherit}
+.tilemap{display:grid;gap:3px;margin:10px 0}
+.tile{border-radius:3px;font-size:.58rem;color:#fff;display:flex;align-items:flex-end;padding:2px 3px;
+  min-height:34px;cursor:pointer;text-shadow:0 0 3px rgba(0,0,0,.55);overflow:hidden;white-space:nowrap}
+.tile:hover{outline:2px solid var(--accent)}
+.tilemap.mini{gap:1.5px}
+.tilemap.mini .tile{min-height:11px;font-size:0;padding:0;border-radius:1.5px;cursor:default}
+.legend{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--muted);margin:6px 0}
+.legend .sw{width:34px;height:12px;border-radius:2px}
+.mmgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.mmgrid .cap{font-size:.75rem;text-align:center;color:var(--muted)}
+.split{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.chip{background:#f0e6e7;border-radius:12px;padding:2px 10px;font-size:.78rem;color:var(--red-dark);cursor:pointer}
+.chip:hover{text-decoration:line-through}
+@media (max-width:760px){.split{grid-template-columns:1fr}}
+.check-row{display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-weight:600}
+.focus-back{display:inline-block;margin-bottom:8px;font-size:.76rem;color:var(--red-dark);text-decoration:underline;cursor:pointer;background:none;border:0;padding:0;font-weight:700}
+.dyn-tabs{display:flex;gap:6px;margin:12px 0 8px}
+.dyn-tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 11px;font-size:.74rem;cursor:pointer;color:var(--muted)}
+.dyn-tab.active{background:var(--soft-red);border-color:#d3b9bc;color:var(--red-dark);font-weight:700}
+.dyn-split{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.focus-note{font-size:.74rem;color:var(--muted);margin-top:8px}
+.perelec-h{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:800;margin:14px 0 4px}
+.mini-donuts{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:12px}
+.mini-donut{text-align:center}
+.mini-donut .ring{width:64px;height:64px;border-radius:50%;margin:0 auto;position:relative}
+.mini-donut .ring::after{content:"";position:absolute;inset:15px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
+.mini-donut .ctr{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;font-size:.58rem;font-weight:800;color:var(--red-dark);line-height:1.02;text-align:center}
+.mini-donut .cap{font-size:.66rem;color:var(--muted);margin-top:4px}
+</style>
+</head>
+<body class="explorer-body">
+<div class="demo-banner">Map explorer: real geoBoundaries region/rayon polygons, RED-derived metrics, geocoded precinct dots, and — in the Regional analysis tab — the tile maps, trajectories, and distribution charts formerly on the Geography page. Precinct polygons are not shown because no public UIK boundaries exist.</div>
+<nav><div class="container">
+  <a class="brand" href="index.html">RED</a>
+  <a class="link" href="index.html">Home</a>
+  <a class="link" href="dashboard.html">Dashboard</a>
+  <a class="link active" href="explorer.html">Map Explorer</a>
+  <a class="link" href="data.html">Data &amp; Docs</a>
+  <span class="spacer"></span>
+  <span class="lang">EN · <span class="disabled" title="Russian interface forthcoming">RU soon</span></span>
+</div></nav>
+<div class="view-tabs"><div class="container">
+  <button class="view-tab active" data-view="map">Map</button>
+  <button class="view-tab" data-view="analysis">Regional analysis</button>
+</div></div>
+
+<main class="explorer-shell">
+  <section style="position:relative;min-width:0">
+    <div class="map-controls">
+      <div class="mc-title">RED map · click to drill</div>
+      <label>Level</label>
+      <div class="seg" id="levelSeg" style="margin-top:4px">
+        <button data-level="region" class="active">Region</button>
+        <button data-level="rayon">Municipality</button>
+        <button data-level="precinct">Precinct</button>
+      </div>
+      <div class="mc-grid2">
+        <label>Election year<select id="yearSel"></select></label>
+        <label>Map metric<select id="metricSel">
+          <option value="s">Incumbent share</option>
+          <option value="t">Turnout</option>
+          <option value="shift">Shift vs prev.</option>
+        </select></label>
+      </div>
+      <div class="mc-search">
+        <label>Search region, municipality, or UIK<input id="searchBox" type="text" placeholder="e.g. Tatarstan, Aleyskaya, 554"></label>
+      </div>
+      <div class="mc-foot">
+        <button id="searchBtn" class="small-action" style="flex:1">Find &amp; zoom</button>
+        <label class="check-row" style="font-size:.72rem"><input id="extrudeToggle" type="checkbox"> 3D</label>
+      </div>
+      <div class="mc-presets">
+        <button class="preset" data-preset="putin2024">2024 map</button>
+        <button class="preset" data-preset="shift2024">2018 → 2024 shift</button>
+        <button class="preset" data-preset="rayon2024">Municipal</button>
+        <button class="preset" data-preset="precinct2024">Precincts</button>
+      </div>
+      <div class="map-status" id="mapStatus">Loading map data…</div>
+    </div>
+    <div class="loading show" id="loading">Loading RED map...</div>
+    <div id="map"></div>
+    <div class="uik-drawer" id="uikDrawer">
+      <div class="drawer-handle" id="drawerHandle"><span></span></div>
+      <div class="drawer-body" id="drawerBody"></div>
+    </div>
+    <div class="legend-card">
+      <b id="legendTitle">Incumbent share</b>
+      <div class="legend-ramp seq" id="legendRamp"></div>
+      <div class="legend-labels"><span id="legendLo">0%</span><span id="legendMid">50%</span><span id="legendHi">100%</span></div>
+    </div>
+  </section>
+</main>
+
+<section class="analysis-view" id="analysisView"><div class="container">
+  <p class="sub">Regional tile maps, party trajectories, and precinct-level distributions. Use valid-vote share for conventional results and registered-voter share when turnout and support should be read together.</p>
+
+  <div class="panel">
+    <h3>1 · Putin's 2024 support as a share of all registered voters</h3>
+    <p class="note">Each tile is one federal subject, arranged to preserve Russia's rough geography. <b>% of valid votes</b> is the conventional result; <b>% of registered voters</b> combines turnout and support; <b>Δ vs previous election</b> shows movement within the same election type.</p>
+    <div class="preset-row">
+      <button class="preset" data-tile-preset="putin-reg">Putin absolute share</button>
+      <button class="preset" data-tile-preset="davankov-valid">Davankov valid share</button>
+      <button class="preset" data-tile-preset="turnout">Turnout</button>
+      <button class="preset" data-tile-preset="delta">Change since previous presidential</button>
+    </div>
+    <div class="controls">
+      <label>Election <select id="mYear"></select></label>
+      <label>Party / candidate <select id="mParty"></select></label>
+      <label>Metric <select id="mMetric">
+        <option value="valid">% of valid votes</option>
+        <option value="reg">% of registered voters</option>
+        <option value="turnout">Turnout %</option>
+        <option value="delta">Δ vs previous election (pp)</option>
+      </select></label>
+    </div>
+    <div class="legend" id="mLegend"></div>
+    <div class="tilemap" id="tilemap"></div>
+    <div class="foot">Click a tile to add that region to the trajectory chart below. Online-voting rows are included in regional totals; hover for details.</div>
+  </div>
+
+  <div class="panel">
+    <h3>2 · Regional differences narrow as the regime consolidates</h3>
+    <p class="note">Left: selected regions' trajectories for the chosen party. Right: the cross-regional standard deviation, a compact view of regional convergence over time.</p>
+    <div class="controls">
+      <label>Party / candidate <select id="tParty"></select></label>
+      <label>Metric <select id="tMetric"><option value="valid">% of valid votes</option><option value="reg">% of registered voters</option></select></label>
+      <label>Add region <input list="tRegList" id="tRegInp" placeholder="type a region…"><datalist id="tRegList"></datalist></label>
+    </div>
+    <div class="preset-row">
+      <button class="preset" data-regions="Moscow,Chechnya,Tatarstan">Moscow · Chechnya · Tatarstan</button>
+      <button class="preset" data-regions="Moscow,SPb,Novosibirsk">Major cities</button>
+      <button class="preset" data-regions="Dagestan,Chechnya,Ingushetia">North Caucasus</button>
+    </div>
+    <div class="chips" id="tChips"></div>
+    <div class="split">
+      <div id="chTraj" class="chart" style="min-height:340px"></div>
+      <div id="chConv" class="chart" style="min-height:340px"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>3 · United Russia's regional map consolidates over time</h3>
+    <p class="note">Same tile layout, every election the party contested, on a fixed color scale. Try KPRF or Yabloko for shrinking opposition maps.</p>
+    <div class="preset-row">
+      <button class="preset" data-party-preset="UR">United Russia</button>
+      <button class="preset" data-party-preset="KPRF">KPRF</button>
+      <button class="preset" data-party-preset="Yabloko">Yabloko</button>
+      <button class="preset" data-party-preset="Putin">Putin</button>
+    </div>
+    <div class="controls">
+      <label>Party / candidate <select id="smParty"></select></label>
+      <label>Metric <select id="smMetric"><option value="valid">% of valid votes</option><option value="reg">% of registered voters</option></select></label>
+    </div>
+    <div class="mmgrid" id="smGrid"></div>
+    <div class="legend" id="smLegend"></div>
+  </div>
+
+  <div class="panel">
+    <h3>4 · Precinct result distributions expose bunching and tails</h3>
+    <p class="note">Histogram of a party's share of valid votes across all precincts. The default comparison shows Putin and Davankov in 2024; log scale reveals rare bins and excess bunching.</p>
+    <div class="controls">
+      <label>Election <select id="hYear"></select></label>
+      <label>Party <select id="hParty"></select></label>
+      <button id="hAdd" class="btn primary" style="padding:6px 14px;font-size:.85rem;border:0;cursor:pointer">Add series</button>
+      <button id="hClear" class="btn ghost" style="padding:6px 14px;font-size:.85rem;border:1px solid var(--line);color:var(--ink);cursor:pointer">Clear</button>
+      <label><input type="checkbox" id="hLog"> log scale</label>
+    </div>
+    <div id="chHistP" class="chart" style="min-height:380px"></div>
+  </div>
+
+  <div class="panel">
+    <h3>5 · High-turnout precincts tell different stories for incumbents and opposition</h3>
+    <p class="note">The 2D fingerprint generalized to any major party. Incumbent patterns and opposition patterns should be read as distributional indicators, not precinct-level verdicts.</p>
+    <div class="controls">
+      <label>Election <select id="fYear"></select></label>
+      <label>Party <select id="fParty"></select></label>
+    </div>
+    <div id="chFinger" class="chart" role="img" aria-label="Heatmap: polling stations binned by turnout and the selected party's share of valid votes" style="min-height:540px"></div>
+  </div>
+
+  <div class="panel">
+    <h3>6 · Small and large precincts reveal different support profiles</h3>
+    <p class="note">Party share by polling-station size. Size is a rough urban-rural proxy, not a direct settlement classification.</p>
+    <div class="controls"><label>Election <select id="gYear"></select></label></div>
+    <div id="chGrad" class="chart" style="min-height:380px"></div>
+  </div>
+
+</div>
+<footer><div class="container">RED: Russian Electoral Data. Bogatyrev, Tarasenko &amp; Savin, Scientific Data, 2026. Data: <a href="https://doi.org/10.7910/DVN/DFGNTP">Harvard Dataverse</a>. Code: <a href="https://github.com/georgytarasenko/RED-replication-package">GitHub</a>. License: CC BY 4.0.</div></footer>
+</section>
+
+<script>
+const YEARS=[2000,2003,2004,2007,2008,2011,2012,2016,2018,2021,2024];
+const PRES=[2000,2004,2008,2012,2018,2024];
+const PARL=[2003,2007,2011,2016,2021];
+const GEO_POINT_YEARS=[2012,2018,2021,2024];
+const C={red:'#8b1e2d',dark:'#4a0812',pale:'#faf9f7',blue:'#275d82',gold:'#c8a44b',muted:'#5c5c66',line:'#e2dfd8'};
+const seqStops=[[250,249,247],[232,201,184],[198,91,78],[74,8,18]];
+const state={level:'region',year:2024,metric:'s',extrude:false,regionGeo:null,rayonGeo:null,regions:null,rayons:null,tikMetrics:null,nat:null,geoRegions:null,geoMeta:null,historyIndex:null,historyCache:{},points:{},currentPointRaw:null,selected:null,selectedKind:null,focus:null,ready:false,booting:false};
+const CYR={А:'A',Б:'B',В:'V',Г:'G',Д:'D',Е:'E',Ё:'E',Ж:'Zh',З:'Z',И:'I',Й:'y',К:'K',Л:'L',М:'M',Н:'N',О:'O',П:'P',Р:'R',С:'S',Т:'T',У:'U',Ф:'F',Х:'Kh',Ц:'Ts',Ч:'Ch',Ш:'Sh',Щ:'Shch',Ы:'y',Э:'E',Ю:'Yu',Я:'Ya',а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'kh',ц:'ts',ч:'ch',ш:'sh',щ:'shch',ы:'y',э:'e',ю:'yu',я:'ya',ъ:'',ь:''};
+function translit(s){return String(s||'').replace(/[А-Яа-яЁёъь]/g,ch=>CYR[ch]??ch).replace(/\s+/g,' ').trim();}
+function displayRegionName(raw){return state.regionNameEN?.[raw] || translit(raw);}
+
+const yearSel=document.getElementById('yearSel');
+YEARS.slice().reverse().forEach(y=>yearSel.add(new Option(`${y} (${PRES.includes(y)?'presidential':'parliamentary'})`,y)));
+yearSel.value='2024';
+
+const map = new maplibregl.Map({
+  container:'map',
+  style:'https://tiles.openfreemap.org/styles/positron',
+  center:[93,66],
+  zoom:2.1,
+  maxZoom:12,
+  attributionControl:true,
+  dragRotate:true,
+  renderWorldCopies:false
+});
+window.map = map;
+map.addControl(new maplibregl.NavigationControl({visualizePitch:false}),'top-right');
+map.on('style.load',()=>{ forceEnglishBasemapLabels(map); setProjectionForLevel(); bootMap(); });
+
+function forceEnglishBasemapLabels(targetMap){
+  const englishText=['coalesce',['get','name_en'],['get','name:en'],['get','name:latin'],['get','name']];
+  (targetMap.getStyle().layers || []).forEach(layer=>{
+    const textField=layer.layout && layer.layout['text-field'];
+    if(layer.type==='symbol' && textField && JSON.stringify(textField).includes('name')){
+      try{ targetMap.setLayoutProperty(layer.id,'text-field',englishText); }catch(e){}
+    }
+  });
+}
+
+function setProjectionForLevel(){
+  try{ map.setProjection({type:'globe'}); }catch(e){}
+}
+function setCameraForLevel(instant=false){
+  const opts = {center:[93,66],zoom:2.1,pitch:0,bearing:0};
+  if(instant) map.jumpTo(opts); else map.easeTo({...opts,duration:550});
+}
+
+function previousSameType(y){
+  const arr=PRES.includes(+y)?PRES:PARL;
+  const i=arr.indexOf(+y);
+  return i>0?arr[i-1]:null;
+}
+function lerp(a,b,t){return a.map((x,i)=>Math.round(x+(b[i]-x)*t));}
+function incumbentId(y){return PARL.includes(+y)?'UR':(+y===2008?'Medvedev':'Putin');}
+function seqColor(v, party=incumbentId(state.year)){
+  if(v==null || !isFinite(v)) return '#d8d2c8';
+  const t=Math.max(0,Math.min(1,v/70));
+  if(window.REDVIZ?.partySeqColor) return REDVIZ.partySeqColor(party,t);
+  const s=t*3, i=Math.min(2,Math.floor(s));
+  const c=lerp(seqStops[i],seqStops[i+1],s-i);
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+function shiftColor(v){
+  if(v==null || !isFinite(v)) return '#d8d2c8';
+  const t=Math.max(-1,Math.min(1,v/30));
+  const c=t<0?lerp([250,249,247],[39,93,130],-t):lerp([250,249,247],[139,30,45],t);
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+function valText(v, metric=state.metric){
+  if(v==null || !isFinite(v)) return 'n/a';
+  return metric==='shift' ? `${v>0?'+':''}${v.toFixed(1)} pp` : `${v.toFixed(1)}%`;
+}
+function fmt(n){return n==null?'n/a':Number(n).toLocaleString('en-US');}
+function esc(s){return String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function unwrapRussiaLongitudes(geo){
+  function walk(coords){
+    if(!Array.isArray(coords)) return;
+    if(typeof coords[0]==='number'){
+      if(coords[0]<0) coords[0]+=360;
+      return;
+    }
+    coords.forEach(walk);
+  }
+  (geo.features || []).forEach(f=>walk(f.geometry && f.geometry.coordinates));
+  return geo;
+}
+function metricFor(key, y, store){
+  const rec=store && store[key] && store[key][String(y)];
+  if(!rec) return null;
+  if(state.metric==='shift'){
+    const py=previousSameType(y);
+    const prev=py && store[key] && store[key][String(py)];
+    return prev ? +(rec.s-prev.s).toFixed(1) : null;
+  }
+  return rec[state.metric];
+}
+function recFor(key, y, store){return store && store[key] && store[key][String(y)] || null;}
+function enrichGeo(geo, store, level){
+  const y=state.year;
+  return {
+    type:'FeatureCollection',
+    features: geo.features.map(f=>{
+      const p={...f.properties};
+      const key=level==='region'?p.region:p.shapeID;
+      const rec=recFor(key,y,store);
+      const value=metricFor(key,y,store);
+      p.key=key;
+      p.name=level==='region'?(p.shapeName || displayRegionName(p.region)):p.shapeName;
+      p.regionNameEN=p.region?displayRegionName(p.region):'';
+      p.value=value;
+      p.fill=state.metric==='shift'?shiftColor(value):seqColor(value);
+      p.height=rec ? Math.max(2000, Math.sqrt(rec.e||0)*55) : 0;
+      p.t=rec?.t ?? null; p.s=rec?.s ?? null; p.e=rec?.e ?? null; p.n=rec?.n ?? null;
+      return {type:'Feature',geometry:f.geometry,properties:p};
+    })
+  };
+}
+function pointGeo(P){
+  const y=state.year, metric=state.metric;
+  const n=P.lon.length, feats=[];
+  for(let i=0;i<n;i++){
+    const value=metric==='shift'?P.shift[i]:P[metric][i];
+    const regionNameEN=displayRegionName(P.region[i]);
+    const tikNameEN=translit(P.tik[i]);
+    feats.push({type:'Feature',geometry:{type:'Point',coordinates:[P.lon[i],P.lat[i]]},properties:{
+      key:`${P.region[i]}|${P.tik[i]}|${P.uik[i]}`,
+      name:`UIK ${P.uik[i]}`,
+      region:P.region[i], regionNameEN, tik:P.tik[i], tikNameEN, uik:P.uik[i], idx:i,
+      value, fill:metric==='shift'?shiftColor(value):seqColor(value),
+      t:P.t[i], s:P.s[i], e:P.e[i], shift:P.shift[i] ?? null
+    }});
+  }
+  return {type:'FeatureCollection',features:feats};
+}
+function ensureSources(){
+  if(!map.getSource('regions')) map.addSource('regions',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+  if(!map.getSource('rayons')) map.addSource('rayons',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+  if(!map.getSource('points')) map.addSource('points',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+}
+function ensureLayers(){
+  if(map.getLayer('region-fill')) return;
+  const beforeLabel = (map.getStyle().layers || []).find(l => l.type === 'symbol')?.id;
+  map.addLayer({id:'region-fill',type:'fill',source:'regions',paint:{'fill-color':['get','fill'],'fill-opacity':0.62}}, beforeLabel);
+  map.addLayer({id:'selected-region-focus',type:'fill',source:'regions',layout:{visibility:'none'},paint:{'fill-color':'#c8a44b','fill-opacity':0.18}}, beforeLabel);
+  map.addLayer({id:'region-line',type:'line',source:'regions',paint:{'line-color':'#ffffff','line-width':0.9,'line-opacity':0.78}}, beforeLabel);
+  map.addLayer({id:'rayon-fill',type:'fill',source:'rayons',paint:{'fill-color':['get','fill'],'fill-opacity':0.56}}, beforeLabel);
+  map.addLayer({id:'selected-rayon-focus',type:'fill',source:'rayons',layout:{visibility:'none'},paint:{'fill-color':'#c8a44b','fill-opacity':0.3}}, beforeLabel);
+  map.addLayer({id:'rayon-line',type:'line',source:'rayons',paint:{'line-color':'#ffffff','line-width':0.35,'line-opacity':0.5}}, beforeLabel);
+  map.addLayer({id:'point-circle',type:'circle',source:'points',paint:{
+    'circle-color':['get','fill'],
+    'circle-radius':['interpolate',['exponential',1.25],['zoom'],2,1.2,4,2,6,3.3,9,5.5,13,8],
+    'circle-opacity':0.82,
+    'circle-stroke-width':0
+  }});
+  map.addLayer({id:'tik-neighbor-halo',type:'circle',source:'points',layout:{visibility:'none'},paint:{
+    'circle-color':'#275d82',
+    'circle-radius':['interpolate',['exponential',1.2],['zoom'],3,3,7,6,11,10],
+    'circle-opacity':0.22,
+    'circle-stroke-color':'#ffffff',
+    'circle-stroke-width':1
+  }});
+  map.addLayer({id:'selected-uik-halo',type:'circle',source:'points',layout:{visibility:'none'},paint:{
+    'circle-color':'#c8a44b',
+    'circle-radius':['interpolate',['exponential',1.2],['zoom'],3,8,7,14,11,22],
+    'circle-opacity':0.36,
+    'circle-stroke-color':'#ffffff',
+    'circle-stroke-width':2
+  }});
+  map.addLayer({id:'selected-uik-core',type:'circle',source:'points',layout:{visibility:'none'},paint:{
+    'circle-color':'#4a0812',
+    'circle-radius':['interpolate',['exponential',1.2],['zoom'],3,4,7,7,11,11],
+    'circle-opacity':0.96,
+    'circle-stroke-color':'#ffffff',
+    'circle-stroke-width':2
+  }});
+  map.addLayer({id:'extrude',type:'fill-extrusion',source:'regions',layout:{visibility:'none'},paint:{
+    'fill-extrusion-color':['get','fill'],
+    'fill-extrusion-height':['get','height'],
+    'fill-extrusion-opacity':0.72
+  }}, beforeLabel);
+}
+function applyLayerVisibility(){
+  const foc=state.focus;
+  const regionOn=state.level==='region';                                  // region choropleth stays in region mode so you can jump between regions
+  const rayonFillOn=(state.level==='rayon' && !foc) || !!foc;             // filled, clickable municipalities whenever browsing rayons or drilled into a region/municipality
+  const rayonLineOn=rayonFillOn;
+  const pointOn=(state.level==='precinct' && !foc) || !!foc;              // UIK dots clickable inside any drilled region/municipality
+  for(const [id,on] of [['region-fill',regionOn&&!state.extrude],['region-line',regionOn],['rayon-fill',rayonFillOn&&!state.extrude],['rayon-line',rayonLineOn],['point-circle',pointOn]]) {
+    if(map.getLayer(id)) map.setLayoutProperty(id,'visibility',on?'visible':'none');
+  }
+  if(map.getLayer('extrude')){
+    const beforeLabel = (map.getStyle().layers || []).find(l => l.type === 'symbol')?.id;
+    if(state.level==='region') {
+      map.removeLayer('extrude');
+      map.addLayer({id:'extrude',type:'fill-extrusion',source:'regions',layout:{visibility:state.extrude?'visible':'none'},paint:{'fill-extrusion-color':['get','fill'],'fill-extrusion-height':['get','height'],'fill-extrusion-opacity':0.72}}, beforeLabel);
+    } else if(state.level==='rayon') {
+      map.removeLayer('extrude');
+      map.addLayer({id:'extrude',type:'fill-extrusion',source:'rayons',layout:{visibility:state.extrude?'visible':'none'},paint:{'fill-extrusion-color':['get','fill'],'fill-extrusion-height':['get','height'],'fill-extrusion-opacity':0.72}}, beforeLabel);
+    } else {
+      map.setLayoutProperty('extrude','visibility','none');
+    }
+  }
+  map.easeTo({pitch:state.extrude&&!pointOn?48:0,duration:500});
+}
+// scope the municipality + precinct layers to whatever we're drilled into
+function applyFocusFilters(){
+  const foc=state.focus, setF=(l,f)=>{ if(map.getLayer(l)) map.setFilter(l,f); };
+  if(foc?.kind==='region'){
+    const inRegion=['==',['get','region'],foc.key];
+    setF('rayon-fill',inRegion); setF('rayon-line',inRegion); setF('point-circle',inRegion);
+  } else if(foc?.kind==='rayon'){
+    const inRegion=['==',['get','region'],foc.region];
+    setF('rayon-fill',inRegion); setF('rayon-line',inRegion); setF('point-circle',['within',foc.geometry]);
+  } else {
+    setF('rayon-fill',null); setF('rayon-line',null); setF('point-circle',null);
+  }
+}
+async function loadPoints(y){
+  if(!GEO_POINT_YEARS.includes(+y)) return null;
+  if(!state.points[y]){
+    document.getElementById('loading').classList.add('show');
+    state.points[y]=await fetch(`data/explorer_points_${y}.json`).then(r=>r.json());
+    document.getElementById('loading').classList.remove('show');
+  }
+  return state.points[y];
+}
+async function ensurePointsForYear(){
+  const y=state.year;
+  if(!GEO_POINT_YEARS.includes(+y)){
+    state.currentPointRaw=null; state.pointData={type:'FeatureCollection',features:[]};
+    if(map.getSource('points')) map.getSource('points').setData(state.pointData);
+    return;
+  }
+  const P=await loadPoints(y);
+  state.currentPointRaw=P;
+  state.pointData=pointGeo(P);
+  if(map.getSource('points')) map.getSource('points').setData(state.pointData);
+}
+async function updateMap(){
+  if(!state.ready){
+    document.getElementById('mapStatus').textContent='Loading map data...';
+    return;
+  }
+  document.getElementById('loading').classList.add('show');
+  const regionData=enrichGeo(state.regionGeo,state.regions,'region');
+  const rayonData=enrichGeo(state.rayonGeo,state.rayons,'rayon');
+  state.regionData=regionData;
+  state.rayonData=rayonData;
+  map.getSource('regions').setData(regionData);
+  map.getSource('rayons').setData(rayonData);
+  await ensurePointsForYear();
+  applyLayerVisibility();
+  applyFocusFilters();
+  applySelectedHighlights();
+  updateLegend();
+  // keep the detail drawer in sync with year/metric changes for region & municipality
+  // (a precinct feature's stats are baked for its load year, so it is left as-is)
+  if(state.selected && state.selectedKind!=='precinct') await openDetail(state.selectedKind,state.selected);
+  updateStatus();
+  document.getElementById('loading').classList.remove('show');
+}
+function applySelectedHighlights(){
+  const show=state.selectedKind==='precinct' && state.selected;
+  for(const id of ['tik-neighbor-halo','selected-uik-halo','selected-uik-core']){
+    if(map.getLayer(id)) map.setLayoutProperty(id,'visibility',show?'visible':'none');
+  }
+  if(show){
+    const p=state.selected.properties;
+    const tikFilter=['all',['==',['get','region'],p.region],['==',['get','tik'],p.tik]];
+    const uikFilter=['all',['==',['get','region'],p.region],['==',['get','tik'],p.tik],['==',['get','uik'],p.uik]];
+    if(map.getLayer('tik-neighbor-halo')) map.setFilter('tik-neighbor-halo',tikFilter);
+    if(map.getLayer('selected-uik-halo')) map.setFilter('selected-uik-halo',uikFilter);
+    if(map.getLayer('selected-uik-core')) map.setFilter('selected-uik-core',uikFilter);
+  }
+}
+function resetFocus(){
+  state.focus=null; state.selected=null; state.selectedKind=null;
+  closeDrawer();
+  if(map.getLayer('rayon-line')) map.setFilter('rayon-line',null);
+  if(map.getLayer('point-circle')) map.setFilter('point-circle',null);
+  if(map.getLayer('selected-region-focus')) map.setLayoutProperty('selected-region-focus','visibility','none');
+  if(map.getLayer('selected-rayon-focus')) map.setLayoutProperty('selected-rayon-focus','visibility','none');
+  applyLayerVisibility();
+  setCameraForLevel();
+  updateStatus();
+}
+window.resetFocus=resetFocus;
+function updateLegend(){
+  const isShift=state.metric==='shift';
+  document.getElementById('legendTitle').textContent=isShift?'Shift vs previous same-type election':(state.metric==='t'?'Turnout':'Incumbent share of valid votes');
+  document.getElementById('legendRamp').classList.toggle('seq',!isShift);
+  document.getElementById('legendRamp').style.background=isShift?'':(REDVIZ.partyRamp ? REDVIZ.partyRamp(incumbentId(state.year)) : '');
+  document.getElementById('legendLo').textContent=isShift?'-30 pp':'0%';
+  document.getElementById('legendMid').textContent=isShift?'0':'35%';
+  document.getElementById('legendHi').textContent=isShift?'+30 pp':'70%+';
+}
+function contestRows(y,regionKey){
+  if(!state.geoRegions || !state.geoMeta) return [];
+  const parties=state.geoMeta.parties_by_year[String(y)] || [];
+  const src=regionKey ? {only:state.geoRegions[String(y)]?.[regionKey]} : (state.geoRegions[String(y)]||{});
+  const rows=parties.map(p=>{
+    let votes=0, valid=0;
+    Object.values(src).forEach(r=>{
+      if(!r) return;
+      votes += +(r['v_'+p] || 0);
+      valid += +(r.valid || 0);
+    });
+    return {id:p,name:REDVIZ.partyName ? REDVIZ.partyName(p) : p,color:REDVIZ.partyColor ? REDVIZ.partyColor(p) : C.red,votes,share:valid?100*votes/valid:0};
+  }).filter(d=>d.votes>0).sort((a,b)=>b.share-a.share);
+  return rows;
+}
+const ABSTAIN_COLOR='#e0dacf', OTHER_COLOR='#cfc8bd';
+function levelWord(kind){return kind==='region'?'Region':(kind==='rayon'?'Municipality':'Precinct');}
+// donut of the CURRENT election, built entirely from arcCard (conic-gradient rings)
+function turnoutDonut(rec){
+  if(!rec || rec.t==null) return '';
+  const t=Math.max(0,Math.min(100,rec.t));
+  return arcCard('Turnout (% of electorate)', [
+    {name:'Voted', value:t, color:C.red},
+    {name:'Did not vote', value:100-t, color:ABSTAIN_COLOR}
+  ], `${rec.t.toFixed(1)}%<br>turnout`);
+}
+function resultsDonutRegion(shortKey,y){
+  const rows=shortKey ? contestRows(y, shortKey) : [];
+  if(!rows.length) return '';
+  const rr=rows.map(r=>({name:r.name,value:r.share,color:r.color}));
+  return arcCard(`${y} results (% of valid votes)`, rr, `${rows[0].share.toFixed(1)}%<br>${rows[0].name.split(' ')[0]}`);
+}
+function incumbentDonut(rec,y){
+  if(!rec || rec.s==null) return '';
+  const s=Math.max(0,Math.min(100,rec.s));
+  const incName=REDVIZ.partyName?REDVIZ.partyName(incumbentId(y)):incumbentId(y);
+  const incColor=REDVIZ.partyColor?REDVIZ.partyColor(incumbentId(y)):C.red;
+  return arcCard(`${y} incumbent share (% of valid votes)`, [
+    {name:incName, value:s, color:incColor},
+    {name:'Other candidates', value:100-s, color:OTHER_COLOR}
+  ], `${rec.s.toFixed(1)}%<br>${incName.split(' ')[0]}`);
+}
+function detailDonuts(kind,p){
+  if(kind==='precinct') return currentCampaignCharts(p);
+  const y=state.year;
+  if(kind==='region'){
+    const key=p.region||p.key, rec=recFor(key,y,state.regions);
+    return turnoutDonut(rec)+resultsDonutRegion(state.regionShort?.[key],y);
+  }
+  const key=p.shapeID||p.key, rec=recFor(key,y,state.rayons);
+  return turnoutDonut(rec)+incumbentDonut(rec,y);
+}
+// time series for one metric ('s' or 't'), presidential and parliamentary in SEPARATE panels
+function renderTrend(entries, metricKey, presId, parlId, title){
+  const pres=[], parl=[];
+  entries.forEach(e=>{
+    if(!e.recByYear) return;
+    const P=PRES.filter(y=>e.recByYear[y]&&e.recByYear[y][metricKey]!=null);
+    const Q=PARL.filter(y=>e.recByYear[y]&&e.recByYear[y][metricKey]!=null);
+    if(P.length) pres.push({x:P.map(String),y:P.map(y=>e.recByYear[y][metricKey]),name:e.label,mode:'lines+markers',line:{color:e.color,width:2,dash:e.dash||'solid'},marker:{size:5}});
+    if(Q.length) parl.push({x:Q.map(String),y:Q.map(y=>e.recByYear[y][metricKey]),name:e.label,mode:'lines+markers',line:{color:e.color,width:2,dash:e.dash||'solid'},marker:{size:5}});
+  });
+  const base=window.REDVIZ?.layout ? REDVIZ.layout({margin:{t:24,r:6,b:22,l:30}}) : {margin:{t:24,r:6,b:22,l:30}};
+  const mk=(t,sl)=>({...base,title:{text:t,font:{size:10}},yaxis:{range:[0,100],ticksuffix:'%',tickfont:{size:8}},xaxis:{tickfont:{size:8}},height:185,showlegend:sl,legend:{font:{size:7},orientation:'h',y:-0.35},font:{size:8}});
+  Plotly.newPlot(presId, pres, mk(`${title} — presidential`, pres.length>1), {displayModeBar:false,responsive:true});
+  Plotly.newPlot(parlId, parl, mk(`${title} — parliamentary`, false), {displayModeBar:false,responsive:true});
+}
+function cascadeLevels(kind,p){
+  const y=String(state.year);
+  if(kind==='region'){
+    const key=p.region||p.key;
+    return [
+      {label:p.shapeName||displayRegionName(key), rec:recFor(key,state.year,state.regions), recByYear:state.regions[key]},
+      {label:'Russia', rec:state.nat[y], recByYear:state.nat}
+    ];
+  }
+  if(kind==='rayon'){
+    const regionKey=p.region, key=p.shapeID||p.key;
+    return [
+      {label:p.shapeName||p.name, rec:recFor(key,state.year,state.rayons), recByYear:state.rayons[key]},
+      {label:displayRegionName(regionKey), rec:recFor(regionKey,state.year,state.regions), recByYear:state.regions[regionKey]},
+      {label:'Russia', rec:state.nat[y], recByYear:state.nat}
+    ];
+  }
+  const tikKey=`${p.region}|${p.tik}`;
+  return [
+    {label:`UIK ${p.uik}`, rec:{s:p.s,t:p.t,e:p.e}, recByYear:null},
+    {label:'Same TIK avg.', rec:state.tikMetrics?.[tikKey]?.[y]||null, recByYear:state.tikMetrics?.[tikKey]},
+    {label:displayRegionName(p.region), rec:recFor(p.region,state.year,state.regions), recByYear:state.regions[p.region]},
+    {label:'Russia', rec:state.nat[y], recByYear:state.nat}
+  ];
+}
+function cascadeGridHtml(levels){
+  return `<div class="bench-grid" style="grid-template-columns:repeat(${levels.length},1fr)">${levels.map(l=>
+    `<div class="bench-cell"><div class="l">${esc(l.label)}</div><div class="v">${valText(l.rec?.s,'s')}</div><div class="l">turnout ${valText(l.rec?.t,'t')}</div></div>`
+  ).join('')}</div>`;
+}
+// small conic-ring donut for the per-election small-multiples
+function miniDonut(rows, center, cap){
+  let acc=0;
+  const segs=rows.filter(r=>r.value>0).map(r=>{const a=acc,b=Math.min(100,acc+r.value);acc=b;return `${r.color} ${a.toFixed(2)}% ${b.toFixed(2)}%`;});
+  if(acc<100) segs.push(`transparent ${acc.toFixed(2)}% 100%`);
+  const tip=rows.map(r=>`${r.name} ${r.value.toFixed(1)}%`).join(' · ');
+  return `<div class="mini-donut" title="${esc(tip)}"><div class="ring" style="background:conic-gradient(${segs.join(',')})"><div class="ctr">${center}</div></div><div class="cap">${esc(cap)}</div></div>`;
+}
+// composition of ONE election for the selected entity → {rows,center} or null
+function electionComposition(kind,p,year,uikByYearFull){
+  if(kind==='region'){
+    const shortKey=state.regionShort?.[p.region||p.key];
+    const cr=shortKey?contestRows(year,shortKey):[];
+    if(!cr.length) return null;
+    return {rows:cr.map(r=>({name:r.name,value:r.share,color:r.color})),center:`${cr[0].share.toFixed(0)}%<br>${esc(cr[0].name.split(' ')[0].slice(0,7))}`};
+  }
+  let s=null, inc=incumbentId(year);
+  if(kind==='rayon'){
+    const rec=state.rayons[p.shapeID||p.key]?.[String(year)]; s=rec?.s;
+  } else {
+    const rec=uikByYearFull?.[year]; s=rec?.s; if(rec?.inc) inc=rec.inc;
+  }
+  if(s==null) return null;
+  const incName=REDVIZ.partyName?REDVIZ.partyName(inc):inc, incColor=REDVIZ.partyColor?REDVIZ.partyColor(inc):C.red;
+  return {rows:[{name:incName,value:s,color:incColor},{name:'Other',value:Math.max(0,100-s),color:OTHER_COLOR}],center:`${s.toFixed(0)}%`};
+}
+// Series of per-election composition donuts across ALL past elections.
+// Region -> full candidate/party shares; rayon/precinct -> incumbent share vs. the rest
+// (precinct-level party breakdown is not published in this release).
+function historicalDonutsHtml(kind,p,uikByYearFull){
+  const build=years=>years.map(y=>{
+    const c=electionComposition(kind,p,y,uikByYearFull); if(!c) return '';
+    return miniDonut(c.rows,c.center,`${y} ${PRES.includes(y)?'pres.':'Duma'}`);
+  }).join('');
+  const pres=build(PRES), parl=build(PARL);
+  const composition = kind==='region' ? 'candidate/party shares' : 'incumbent share vs. the rest';
+  return `<div class="drawer-history" role="img" aria-label="Result-composition donut for each past election">
+    <h3>Historical observations</h3>
+    <div class="perelec-h">Results by past election — presidential</div>
+    <div class="mini-donuts">${pres||'<div class="focus-note">No presidential data available.</div>'}</div>
+    <div class="perelec-h">Results by past election — parliamentary</div>
+    <div class="mini-donuts">${parl||'<div class="focus-note">No parliamentary data available.</div>'}</div>
+    <p class="focus-note">Each ring is one past election's composition (${composition}). Presidential and parliamentary elections are shown separately — never blended.</p>
+  </div>`;
+}
+// Universal detail drawer — opens for region, municipality, or precinct clicks.
+// "This election" = donuts (turnout + results/incumbent) + a compact cascade strip.
+// "Over time" = turnout & incumbent-share time series, presidential/parliamentary in separate panels.
+async function openDetail(kind,f){
+  const drawer=document.getElementById('uikDrawer'), body=document.getElementById('drawerBody');
+  const p=f.properties;
+  const levels=cascadeLevels(kind,p);
+  const title = kind==='precinct' ? `UIK ${esc(p.uik)}` : esc(levels[0].label);
+  const sub = kind==='precinct'
+    ? `${esc(p.regionNameEN||displayRegionName(p.region))} · ${esc(p.tikNameEN||translit(p.tik))}`
+    : (kind==='rayon' ? esc(displayRegionName(p.region)) : 'Federal subject');
+  const back = state.focus ? `<button class="drawer-close" onclick="resetFocus()">◀ National</button>` : '';
+  const dataNote = kind==='rayon' ? '<div class="focus-note">Party-by-party results are only published at region level and above in this release; municipalities show turnout and incumbent share.</div>' : '';
+  drawer.classList.add('open'); drawer.classList.remove('collapsed');
+  body.innerHTML=`
+    <div class="drawer-head">
+      <div><h2>${title} · ${state.year}</h2><p>${levelWord(kind)} · ${sub}</p></div>
+      <div style="display:flex;gap:6px">${back}<button class="drawer-close" id="drawerClose">Close</button></div>
+    </div>
+    <div class="dyn-tabs" id="dTabs">
+      <button class="dyn-tab active" data-dyn="now">This election</button>
+      <button class="dyn-tab" data-dyn="time">Over time</button>
+    </div>
+    <div id="dNow">
+      ${cascadeGridHtml(levels)}
+      <div class="drawer-grid" id="dDonuts" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">${detailDonuts(kind,p)}</div>
+      ${dataNote}
+      <div id="dExtra"></div>
+    </div>
+    <div id="dTime" style="display:none">
+      <div class="dyn-split"><div id="tsIncP" class="chart" style="min-height:185px"></div><div id="tsIncQ" class="chart" style="min-height:185px"></div></div>
+      <div class="dyn-split"><div id="tsTurnP" class="chart" style="min-height:185px"></div><div id="tsTurnQ" class="chart" style="min-height:185px"></div></div>
+      <p class="focus-note">Presidential and parliamentary elections are always shown separately — never blended. Per-election result rings are under "This election" &rarr; Historical observations.</p>
+    </div>
+  `;
+  document.getElementById('drawerClose').onclick=closeDrawer;
+  document.querySelectorAll('#dTabs .dyn-tab').forEach(b=>b.onclick=async()=>{
+    document.querySelectorAll('#dTabs .dyn-tab').forEach(x=>x.classList.toggle('active',x===b));
+    const now=b.dataset.dyn==='now';
+    document.getElementById('dNow').style.display=now?'':'none';
+    document.getElementById('dTime').style.display=now?'none':'';
+    if(now) return;
+    let entries, uikByYearFull=null;
+    if(kind==='precinct'){
+      const rows=await historyRowsFor(p);
+      const uikByYear={}; uikByYearFull={};
+      (rows||[]).forEach(r=>{uikByYear[r.year]={s:r.incumbent,t:r.turnout};uikByYearFull[r.year]={s:r.incumbent,inc:r.incumbent_id};});
+      entries=[
+        {label:`UIK ${p.uik}`, color:C.red, recByYear:uikByYear},
+        {label:'TIK avg.', color:C.gold, dash:'dash', recByYear:state.tikMetrics?.[`${p.region}|${p.tik}`]},
+        {label:displayRegionName(p.region), color:C.muted, dash:'dot', recByYear:state.regions[p.region]}
+      ];
+    } else {
+      entries=levels.map((l,i)=>({label:l.label,color:i===0?C.red:(i===1?C.gold:C.muted),dash:i===0?'solid':(i===1?'dash':'dot'),recByYear:l.recByYear}));
+    }
+    renderTrend(entries,'s','tsIncP','tsIncQ','Incumbent share');
+    renderTrend(entries,'t','tsTurnP','tsTurnQ','Turnout');
+  });
+  if(kind!=='precinct'){
+    document.getElementById('dExtra').innerHTML=historicalDonutsHtml(kind,p,null);
+  }
+  // precinct-only: append per-precinct insights and the raw panel-history timeline
+  if(kind==='precinct'){
+    const rows=await historyRowsFor(p);
+    if(state.selected!==f) return;
+    const uikByYearFull={};
+    (rows||[]).forEach(r=>{uikByYearFull[r.year]={s:r.incumbent,inc:r.incumbent_id};});
+    document.getElementById('dExtra').innerHTML=`<div style="margin-top:12px">${insightHtml(p,rows)}</div>${historicalDonutsHtml('precinct',p,uikByYearFull)}`;
+  }
+}
+function updateStatus(){
+  const levelLabel={region:'83 regions',rayon:'2,327 rayons',precinct:'geocoded precincts'}[state.level];
+  const shiftNote=state.metric==='shift'?` vs ${previousSameType(state.year)||'n/a'}`:'';
+  document.getElementById('mapStatus').textContent=`Showing ${levelLabel}, ${state.year}${shiftNote}.`;
+}
+function recBench(p){
+  const y=String(state.year);
+  const tik=state.tikMetrics?.[`${p.region}|${p.tik}`]?.[y] || null;
+  const region=recFor(p.region,state.year,state.regions);
+  const national=state.nat[y] || null;
+  return {uik:{s:p.s,t:p.t,e:p.e},tik,region,national};
+}
+function rawPointFor(p){
+  const P=state.currentPointRaw, i=Number(p.idx);
+  if(!P || !Number.isFinite(i)) return null;
+  return P.lon && P.lon[i]!=null ? {P,i} : null;
+}
+function arcRowsHtml(rows){
+  return rows.map(r=>`<div class="arc-row"><span class="arc-dot" style="background:${r.color}"></span><span class="arc-name">${esc(r.name)}</span><span class="arc-val">${r.value.toFixed(1)}%</span></div>`).join('');
+}
+function arcCard(title, rows, center){
+  let acc=0;
+  const segs=rows.filter(r=>r.value>0).map(r=>{
+    const a=acc, b=Math.min(100, acc+r.value); acc=b;
+    return `${r.color} ${a.toFixed(3)}% ${b.toFixed(3)}%`;
+  });
+  if(acc<100) segs.push(`transparent ${acc.toFixed(3)}% 100%`);
+  return `<div class="arc-card">
+    <h3>${esc(title)}</h3>
+    <div class="arc-wrap">
+      <div class="open-ring" style="background:conic-gradient(${segs.join(',')})"><div class="open-ring-center">${center}</div></div>
+      <div class="arc-list">${arcRowsHtml(rows)}</div>
+    </div>
+  </div>`;
+}
+function currentCampaignCharts(p){
+  const raw=rawPointFor(p);
+  if(!raw) return '';
+  const {P,i}=raw, e=P.e[i] || 0, valid=P.valid?.[i] || 0;
+  const modeRows=[
+    ['On-site',P.onsite?.[i] || 0,'#8b1e2d'],
+    ['Off-site',P.offsite?.[i] || 0,'#c8a44b'],
+    ['Early',P.early?.[i] || 0,'#275d82'],
+    ['Absentee',P.absentee?.[i] || 0,'#7b8794']
+  ].filter(r=>r[1]>0).map(r=>({name:r[0],value:e?100*r[1]/e:0,color:r[2]}));
+  const parties=(P.parties || []).map(id=>({id,value:P.v?.[id]?.[i] ?? null}))
+    .filter(r=>r.value!=null && r.value>=0)
+    .sort((a,b)=>b.value-a.value);
+  const resultRows=parties.map(r=>({name:REDVIZ.partyName(r.id),value:r.value,color:REDVIZ.partyColor(r.id)}));
+  return [
+    arcCard('Turnout modes (% of electorate)', modeRows, `${valText(p.t,'t')}<br>turnout`),
+    arcCard(`${state.year} results (% of valid votes)`, resultRows, `${valid?fmt(valid):'n/a'}<br>valid`)
+  ].join('');
+}
+function comparisonHtml(p){
+  const b=recBench(p);
+  const cells=[
+    ['Selected UIK',p.s,p.t],
+    ['Same TIK avg.',b.tik?.s,b.tik?.t],
+    ['Region avg.',b.region?.s,b.region?.t],
+    ['National avg.',b.national?.s,b.national?.t]
+  ];
+  return `<div class="bench-grid">${cells.map(c=>`<div class="bench-cell"><div class="l">${c[0]}</div><div class="v">${valText(c[1],'s')}</div><div class="l">turnout ${valText(c[2],'t')}</div></div>`).join('')}</div>`;
+}
+async function historyRowsFor(p){
+  if(!p || !p.tik || !state.historyIndex) return null;
+  const meta=state.historyIndex[p.region];
+  if(!meta) return [];
+  if(!state.historyCache[p.region]){
+    state.historyCache[p.region]=await fetch(`data/uik_history/${meta.file}`).then(r=>r.json());
+  }
+  const H=state.historyCache[p.region], key=`${p.tik}|${p.uik}`, rows=[];
+  for(let i=0;i<H.key.length;i++){
+    if(String(H.key[i])===key){
+      rows.push({
+        year:H.year[i], type:H.type[i], uik_old:H.uik_old[i], tik_old:H.tik_old[i],
+        address:H.address[i], electorate:H.electorate[i], turnout:H.turnout[i],
+        incumbent:H.incumbent[i], incumbent_id:H.incumbent_id[i], lon:H.lon[i], lat:H.lat[i]
+      });
+    }
+  }
+  return rows.sort((a,b)=>a.year-b.year);
+}
+function drawerHistoryHtml(rows){
+  if(!rows?.length) return '<div class="drawer-history"><h3>Historical observations</h3><div class="history-sub">No matched rows found.</div></div>';
+  const body=rows.map(r=>{
+    const color=REDVIZ.partyColor ? REDVIZ.partyColor(r.incumbent_id) : C.red;
+    return `<div class="history-row">
+      <div class="history-top"><span class="history-year">${r.year} ${r.type==='pres'?'pres.':'Duma'}</span><span class="history-key">raw UIK ${esc(r.uik_old || 'n/a')} · ${esc(r.tik_old || 'raw TIK n/a')}</span></div>
+      <div class="history-address">${esc(r.address || 'No source address in this release')}</div>
+      <div class="history-metrics">
+        <div class="mini-bar"><b><span>Turnout</span><span>${valText(r.turnout,'t')}</span></b><div class="mini-track"><span style="width:${Math.max(0,Math.min(100,r.turnout||0))}%"></span></div></div>
+        <div class="mini-bar"><b><span>${esc(REDVIZ.partyName ? REDVIZ.partyName(r.incumbent_id) : r.incumbent_id)}</span><span>${valText(r.incumbent,'s')}</span></b><div class="mini-track"><span style="width:${Math.max(0,Math.min(100,r.incumbent||0))}%;background:${color}"></span></div></div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="drawer-history"><h3>Historical observations</h3><div class="history-timeline">${body}</div></div>`;
+}
+function insightHtml(p, rows){
+  const b=recBench(p), out=[];
+  if(b.tik?.s!=null) {
+    const ds=p.s-b.tik.s, dt=p.t-b.tik.t;
+    out.push(`<b>${ds>=0?'Above':'Below'} same-TIK incumbent average:</b> ${ds>=0?'+':''}${ds.toFixed(1)} pp.`);
+    out.push(`<b>${dt>=0?'Higher':'Lower'} turnout than same TIK:</b> ${dt>=0?'+':''}${dt.toFixed(1)} pp.`);
+  }
+  if(rows?.length>=2){
+    ['pres','parl'].forEach(ty=>{
+      const rs=rows.filter(r=>r.type===ty);
+      if(rs.length>=2){
+        const first=rs[0], last=rs[rs.length-1];
+        const label=ty==='pres'?'Presidential':'Parliamentary';
+        out.push(`<b>${label} panel change:</b> incumbent share moved ${last.incumbent-first.incumbent>=0?'+':''}${(last.incumbent-first.incumbent).toFixed(1)} pp from ${first.year} to ${last.year}.`);
+      }
+    });
+    const maxT=rows.slice().sort((a,b)=>(b.turnout||0)-(a.turnout||0))[0];
+    out.push(`<b>Peak turnout year:</b> ${maxT.year} (${maxT.type==='pres'?'presidential':'parliamentary'}) at ${valText(maxT.turnout,'t')}.`);
+    if(new Set(rows.map(r=>r.address).filter(Boolean)).size>1) out.push('<b>Address trail changes:</b> source addresses vary across years, useful for auditing the match.');
+    if(new Set(rows.map(r=>r.uik_old)).size>1 || new Set(rows.map(r=>r.tik_old)).size>1) out.push('<b>Raw identifier drift:</b> original UIK/TIK labels are not constant, so the harmonized key is doing real work.');
+  }
+  return `<div class="insight-card"><h3>Interesting signals</h3><div class="insight-list">${out.map(x=>`<div>${x}</div>`).join('')}</div></div>`;
+}
+function focusSelectedUik(f){
+  if(!f || f.geometry?.type!=='Point') return;
+  map.easeTo({center:f.geometry.coordinates,zoom:9.2,pitch:0,bearing:0,offset:[170,-80],duration:900});
+}
+function closeDrawer(){
+  document.getElementById('uikDrawer').classList.remove('open','collapsed');
+}
+function selectFeature(f,kind){
+  if(kind==='region') return selectRegion(f);
+  if(kind==='rayon') return selectRayon(f);
+  return selectPrecinct(f);
+}
+async function selectRegion(f){
+  const p=f.properties, regionKey=p.region||p.key;
+  state.selected=f; state.selectedKind='region';
+  state.focus={kind:'region',key:regionKey,geometry:f.geometry};
+  closeDrawer();
+  await ensurePointsForYear();
+  applyLayerVisibility();
+  applyFocusFilters();
+  // municipalities now fill the region, so the gold region overlay would only obscure them
+  if(map.getLayer('selected-region-focus')) map.setLayoutProperty('selected-region-focus','visibility','none');
+  if(map.getLayer('selected-rayon-focus')) map.setLayoutProperty('selected-rayon-focus','visibility','none');
+  map.fitBounds(boundsOf(f.geometry),{padding:{top:80,left:80,right:80,bottom:Math.round(window.innerHeight*0.45)},duration:700,maxZoom:6.5});
+  applySelectedHighlights();
+  await openDetail('region',f);
+}
+async function selectRayon(f){
+  const p=f.properties, key=p.shapeID||p.key, regionKey=p.region;
+  state.selected=f; state.selectedKind='rayon';
+  state.focus={kind:'rayon',key,region:regionKey,geometry:f.geometry};
+  closeDrawer();
+  await ensurePointsForYear();
+  applyLayerVisibility();
+  applyFocusFilters();
+  if(map.getLayer('selected-region-focus')) map.setLayoutProperty('selected-region-focus','visibility','none');
+  if(map.getLayer('selected-rayon-focus')){ map.setFilter('selected-rayon-focus',['==',['get','shapeID'],key]); map.setLayoutProperty('selected-rayon-focus','visibility','visible'); }
+  map.fitBounds(boundsOf(f.geometry),{padding:{top:70,left:70,right:70,bottom:Math.round(window.innerHeight*0.45)},duration:700,maxZoom:10});
+  applySelectedHighlights();
+  await openDetail('rayon',f);
+}
+function selectPrecinct(f){
+  state.selected=f; state.selectedKind='precinct';
+  applySelectedHighlights();
+  if(f.geometry?.type==='Point') focusSelectedUik(f);
+  openDetail('precinct',f);
+}
+function wireHover(layer){
+  map.on('mousemove',layer,e=>{
+    map.getCanvas().style.cursor='pointer';
+    const f=e.features[0];
+    const p=f.properties;
+    popup.setLngLat(e.lngLat).setHTML(`<b>${p.name||p.shapeName}</b><br>${valText(p.value)}<br>${state.metric==='shift'?'shift':'metric'} · ${state.year}`).addTo(map);
+  });
+  map.on('mouseleave',layer,()=>{map.getCanvas().style.cursor=''; popup.remove();});
+}
+// Single click handler with a fixed priority: precinct dot > municipality > region.
+// Whatever you click replaces the open drawer immediately — no need to close it first.
+function wireUnifiedClick(){
+  map.on('click',e=>{
+    const layers=['point-circle','rayon-fill','region-fill'].filter(l=>map.getLayer(l) && map.getLayoutProperty(l,'visibility')!=='none');
+    if(!layers.length) return;
+    const feats=map.queryRenderedFeatures(e.point,{layers});
+    const pick=id=>feats.find(f=>f.layer.id===id);
+    const pt=pick('point-circle');
+    if(pt){ const full=state.pointData.features.find(x=>x.properties.key===pt.properties.key); return selectPrecinct(full||pt); }
+    const ry=pick('rayon-fill');
+    if(ry){ const k=ry.properties.shapeID||ry.properties.key; const full=state.rayonData.features.find(x=>(x.properties.shapeID||x.properties.key)===k); return selectRayon(full||ry); }
+    const rg=pick('region-fill');
+    if(rg){ const k=rg.properties.region||rg.properties.key; const full=state.regionData.features.find(x=>(x.properties.region||x.properties.key)===k); return selectRegion(full||rg); }
+  });
+}
+const popup=new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:12});
+
+function searchCurrent(){
+  const q=document.getElementById('searchBox').value.trim().normalize('NFC').toLowerCase();
+  if(!q) return;
+  const src=state.level==='region'?state.regionData:(state.level==='rayon'?state.rayonData:state.pointData);
+  const f=src.features.find(ft=>{
+    const p=ft.properties;
+    return [p.name,p.shapeName,p.regionNameEN,p.tikNameEN,p.region,p.tik,p.uik,String(p.uik||'')].filter(Boolean).some(x=>String(x).normalize('NFC').toLowerCase().includes(q));
+  });
+  if(!f){document.getElementById('mapStatus').textContent=`No match for "${q}" at the current level.`; return;}
+  selectFeature(f,state.level);
+}
+function boundsOf(geom){
+  const coords=[];
+  function walk(x){if(typeof x[0]==='number') coords.push(x); else x.forEach(walk);}
+  walk(geom.coordinates);
+  return coords.reduce((b,c)=>b.extend(c),new maplibregl.LngLatBounds(coords[0],coords[0]));
+}
+
+async function bootMap(){
+  if(state.ready || state.booting) return;
+  state.booting=true;
+  ensureSources(); ensureLayers();
+  const loadingEl=document.getElementById('loading');
+  loadingEl.classList.add('show');
+  const fj=async f=>{const r=await fetch('data/'+f); if(!r.ok) throw new Error(f+' → HTTP '+r.status); return r.json();};
+  try{
+    [state.regionGeo,state.rayonGeo,state.regions,state.rayons,state.tikMetrics,state.nat,state.geoRegions,state.geoMeta,state.historyIndex,state.geoGrid]=await Promise.all(
+      ['regions_geo.json','rayon_geo.json','regions_metrics.json','rayon_metrics.json','tik_metrics.json','nat_metrics.json','geo_regions.json','geo_meta.json','uik_history/index.json','geo_grid.json'].map(fj));
+  }catch(err){
+    state.booting=false;
+    loadingEl.textContent='Could not load map data ('+err.message+'). Serve the site from the project folder, and re-run scripts/build_geo_data.py if data files are missing.';
+    document.getElementById('mapStatus').textContent='Map data failed to load.';
+    return;
+  }
+  unwrapRussiaLongitudes(state.regionGeo);
+  unwrapRussiaLongitudes(state.rayonGeo);
+  state.regionNameEN={};
+  state.regionGeo.features.forEach(f=>{
+    const p=f.properties || {};
+    if(p.region) state.regionNameEN[p.region]=p.shapeName || translit(p.region);
+  });
+  // crosswalk: region_geo.json's Russian region name -> geo_regions.json's short-name key
+  // (two different naming schemes from two independent build steps; bridge via normalized transliteration)
+  const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const gridByNorm={};
+  (state.geoGrid||[]).forEach(g=>{gridByNorm[norm(g.region)]=g.short;});
+  const shortNameOverride={'Республика Адыгея (Адыгея)':'Adygea','Еврейская автономная область':'Jewish AO','Карачаево-Черкесская Республика':'K.-Cherkessia'};
+  state.regionShort={};
+  state.regionGeo.features.forEach(f=>{
+    const rn=f.properties?.region; if(!rn) return;
+    state.regionShort[rn]=shortNameOverride[rn] || gridByNorm[norm(translit(rn))] || null;
+  });
+  state.ready=true;
+  setProjectionForLevel();
+  setCameraForLevel(true);
+  await updateMap();
+  wireHover('region-fill'); wireHover('rayon-fill'); wireHover('point-circle');
+  wireUnifiedClick();
+}
+map.on('load',bootMap);
+
+document.querySelectorAll('#levelSeg button').forEach(b=>b.onclick=async()=>{
+  if(!state.ready) return;
+  state.level=b.dataset.level;
+  state.focus=null; state.selected=null; state.selectedKind=null;
+  closeDrawer();
+  if(map.getLayer('rayon-line')) map.setFilter('rayon-line',null);
+  if(map.getLayer('point-circle')) map.setFilter('point-circle',null);
+  if(map.getLayer('selected-region-focus')) map.setLayoutProperty('selected-region-focus','visibility','none');
+  if(map.getLayer('selected-rayon-focus')) map.setLayoutProperty('selected-rayon-focus','visibility','none');
+  document.querySelectorAll('#levelSeg button').forEach(x=>x.classList.toggle('active',x===b));
+  document.getElementById('extrudeToggle').disabled=state.level==='precinct';
+  setProjectionForLevel();
+  setCameraForLevel();
+  await updateMap();
+});
+yearSel.onchange=async()=>{if(!state.ready)return;state.year=+yearSel.value;await updateMap();};
+document.getElementById('metricSel').onchange=async e=>{if(!state.ready)return;state.metric=e.target.value;await updateMap();};
+document.getElementById('extrudeToggle').onchange=e=>{if(!state.ready)return;state.extrude=e.target.checked;setVis();};
+document.getElementById('searchBtn').onclick=searchCurrent;
+document.getElementById('searchBox').addEventListener('keydown',e=>{if(e.key==='Enter')searchCurrent();});
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=async()=>{
+  if(!state.ready) return;
+  const p=b.dataset.preset;
+  if(p==='putin2024'){state.level='region';state.year=2024;state.metric='s';state.extrude=false;}
+  if(p==='shift2024'){state.level='region';state.year=2024;state.metric='shift';state.extrude=false;}
+  if(p==='rayon2024'){state.level='rayon';state.year=2024;state.metric='s';state.extrude=false;}
+  if(p==='precinct2024'){state.level='precinct';state.year=2024;state.metric='s';state.extrude=false;}
+  state.focus=null; state.selected=null; state.selectedKind=null;
+  closeDrawer();
+  if(map.getLayer('rayon-line')) map.setFilter('rayon-line',null);
+  if(map.getLayer('point-circle')) map.setFilter('point-circle',null);
+  if(map.getLayer('selected-region-focus')) map.setLayoutProperty('selected-region-focus','visibility','none');
+  if(map.getLayer('selected-rayon-focus')) map.setLayoutProperty('selected-rayon-focus','visibility','none');
+  yearSel.value=String(state.year); document.getElementById('metricSel').value=state.metric; document.getElementById('extrudeToggle').checked=false;
+  document.querySelectorAll('#levelSeg button').forEach(x=>x.classList.toggle('active',x.dataset.level===state.level));
+  document.getElementById('extrudeToggle').disabled=state.level==='precinct';
+  setProjectionForLevel();
+  setCameraForLevel();
+  await updateMap();
+});
+
+// ================= Regional analysis (merged from Geography) =================
+let analysisReady=false, analysisLoading=false;
+async function initAnalysis(){
+  if(analysisReady || analysisLoading) return;
+  analysisLoading=true;
+  const fj=async f=>{const r=await fetch('data/'+f); if(!r.ok) throw new Error(f); return r.json();};
+  const [grid,hist,f2d,sizeb]=await Promise.all(['geo_grid.json','geo_hist.json','geo_2d.json','geo_sizebins.json'].map(fj));
+  while(!state.ready) await new Promise(r=>setTimeout(r,60));
+  const reg=state.geoRegions, meta=state.geoMeta;
+  const AYEARS=Object.keys(reg).map(Number).sort((a,b)=>a-b);
+  const TYPE={}; AYEARS.forEach(y=>{TYPE[y]=meta.types[String(y)];});
+  const partiesOf=y=>meta.parties_by_year[String(y)]||[];
+  const shortName={}; grid.forEach(g=>shortName[g.short]=g.region);
+  const minX=Math.min(...grid.map(g=>g.x)), maxX=Math.max(...grid.map(g=>g.x));
+  const minY=Math.min(...grid.map(g=>g.y)), maxY=Math.max(...grid.map(g=>g.y));
+  const NCOL=maxX-minX+1;
+  const nm=p=>REDVIZ.partyName(p), pc=p=>REDVIZ.partyColor(p);
+  const seqCol=t=>REDVIZ.seqColor(t), partySeqCol=(p,t)=>REDVIZ.partySeqColor(p,t), divCol=t=>REDVIZ.divColor(t);
+  const baseLayout=REDVIZ.layout({margin:{t:34,r:16,b:48,l:56}});
+
+  function share(y,r,p,metric){
+    const d=reg[y]&&reg[y][r]; if(!d) return null;
+    const v=d['v_'+p]; if(v==null) return null;
+    if(metric==='reg') return 100*v/d.electorate;
+    return 100*v/d.valid;
+  }
+  function turnoutOf(y,r){const d=reg[y]&&reg[y][r];return d?100*d.turnout/d.electorate:null;}
+  function prevYear(y){const same=AYEARS.filter(x=>TYPE[x]===TYPE[y]&&x<y);return same.length?same[same.length-1]:null;}
+
+  // ---------- tile map ----------
+  const mY=document.getElementById('mYear'), mP=document.getElementById('mParty'), mM=document.getElementById('mMetric');
+  AYEARS.slice().reverse().forEach(y=>mY.add(new Option(`${y} (${TYPE[y]==='pres'?'presidential':'parliamentary'})`,y)));
+  function fillParties(sel,y,majorsOnly){const cur=sel.value;sel.innerHTML='';
+   (majorsOnly?partiesOf(y).filter(p=>meta.majors.includes(p)):partiesOf(y)).forEach(p=>sel.add(new Option(nm(p),p)));
+   if([...sel.options].some(o=>o.value===cur))sel.value=cur;}
+  function alegend(el,lo,hi,col,fmtv){el.innerHTML='';
+   for(let i=0;i<=5;i++){const v=lo+(hi-lo)*i/5;
+    el.insertAdjacentHTML('beforeend',`<div class="sw" style="background:${col(i/5)}"></div><span>${fmtv(v)}</span>`);}}
+  function drawTiles(el,y,p,metric,fixedMax,mini){
+    el.style.gridTemplateColumns=`repeat(${NCOL},1fr)`; el.innerHTML='';
+    const vals={},deltas={};
+    grid.forEach(g=>{
+      if(metric==='turnout'){vals[g.short]=turnoutOf(y,g.short);}
+      else if(metric==='delta'){const py=prevYear(y);
+        const a=share(y,g.short,p,'valid'), b=py?share(py,g.short,p,'valid'):null;
+        deltas[g.short]=(a!=null&&b!=null)?a-b:null;}
+      else vals[g.short]=share(y,g.short,p,metric);});
+    let maxv=fixedMax;
+    if(metric==='delta'){const dv=Object.values(deltas).filter(v=>v!=null).map(Math.abs);
+      maxv=Math.max(10,...dv);}
+    else if(!maxv){const vv=Object.values(vals).filter(v=>v!=null);maxv=Math.max(10,...vv);}
+    grid.forEach(g=>{
+      const d=document.createElement('div');d.className='tile';
+      d.style.gridColumn=(g.x-minX+1); d.style.gridRow=(g.y-minY+1);
+      const v=metric==='delta'?deltas[g.short]:vals[g.short];
+      if(v==null){d.style.background=REDVIZ.NODATA;d.classList.add('nodata');d.title=`${g.region}: no data`;}
+      else{d.style.background=metric==='delta'?divCol(v/maxv):(metric==='turnout'?seqCol(v/maxv):partySeqCol(p,v/maxv));
+        d.title=`${g.region}\n${metric==='delta'?'Δ':''}${v.toFixed(1)}${metric==='delta'?' pp':'%'}`;}
+      if(!mini){d.textContent=g.short.slice(0,6);d.onclick=()=>addRegion(g.short);
+        d.setAttribute('role','button');d.tabIndex=0;d.setAttribute('aria-label',`${g.region}: add to trajectory`);
+        d.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();addRegion(g.short);}};}
+      el.appendChild(d);});
+    return maxv;
+  }
+  function redrawMain(){
+    fillParties(mP,mY.value,false);
+    const maxv=drawTiles(document.getElementById('tilemap'),mY.value,mP.value,mM.value,null,false);
+    const L=document.getElementById('mLegend');
+    if(mM.value==='delta')alegend(L,-maxv,maxv,t=>divCol(t*2-1),v=>v.toFixed(0)+'pp');
+    else alegend(L,0,maxv,mM.value==='turnout'?seqCol:t=>partySeqCol(mP.value,t),v=>v.toFixed(0)+'%');
+  }
+  mY.onchange=redrawMain; mP.onchange=()=>{const v=mP.value;redrawMain();mP.value=v;drawAfterParty();};
+  mM.onchange=redrawMain;
+  function drawAfterParty(){const maxv=drawTiles(document.getElementById('tilemap'),mY.value,mP.value,mM.value,null,false);
+    const L=document.getElementById('mLegend');
+    if(mM.value==='delta')alegend(L,-maxv,maxv,t=>divCol(t*2-1),v=>v.toFixed(0)+'pp');
+    else alegend(L,0,maxv,mM.value==='turnout'?seqCol:t=>partySeqCol(mP.value,t),v=>v.toFixed(0)+'%');}
+
+  // ---------- small multiples ----------
+  const smP=document.getElementById('smParty'), smM=document.getElementById('smMetric');
+  const allParties=[...new Set(AYEARS.flatMap(partiesOf))].sort((a,b)=>nm(a).localeCompare(nm(b)));
+  allParties.forEach(p=>smP.add(new Option(nm(p),p)));
+  function drawSM(){
+    const p=smP.value, yy=AYEARS.filter(y=>partiesOf(y).includes(p));
+    let maxv=0;yy.forEach(y=>grid.forEach(g=>{const v=share(y,g.short,p,smM.value);if(v>maxv)maxv=v;}));
+    const G=document.getElementById('smGrid');G.innerHTML='';
+    yy.forEach(y=>{const w=document.createElement('div');
+      const m=document.createElement('div');m.className='tilemap mini';
+      drawTiles(m,y,p,smM.value,maxv,true);
+      const c=document.createElement('div');c.className='cap';c.textContent=y;
+      w.appendChild(m);w.appendChild(c);G.appendChild(w);});
+    alegend(document.getElementById('smLegend'),0,maxv,t=>partySeqCol(p,t),v=>v.toFixed(0)+'%');
+  }
+  smP.onchange=drawSM; smM.onchange=drawSM;
+
+  // ---------- trajectories ----------
+  const tP=document.getElementById('tParty'), tM=document.getElementById('tMetric'),
+        tI=document.getElementById('tRegInp'), tC=document.getElementById('tChips');
+  allParties.forEach(p=>tP.add(new Option(nm(p),p)));
+  grid.slice().sort((a,b)=>a.short.localeCompare(b.short)).forEach(g=>
+    document.getElementById('tRegList').appendChild(new Option(g.short)));
+  let selRegions=['Moscow','Chechnya'].filter(r=>shortName[r]);
+  if(!selRegions.length) selRegions=[grid[0].short];
+  function addRegion(r){if(!selRegions.includes(r)&&shortName[r]){if(selRegions.length>=7)selRegions.shift();
+    selRegions.push(r);drawTraj();}}
+  window.addRegion=addRegion;
+  tI.onchange=()=>{addRegion(tI.value);tI.value='';};
+  function drawTraj(){
+    tC.innerHTML=selRegions.map(r=>`<span class="chip" onclick="rmRegion('${r}')">${r} ✕</span>`).join('');
+    const p=tP.value, metric=tM.value;
+    const traces=selRegions.map(r=>({x:AYEARS.filter(y=>share(y,r,p,metric)!=null).map(String),
+      y:AYEARS.filter(y=>share(y,r,p,metric)!=null).map(y=>share(y,r,p,metric)),
+      name:r,mode:'lines+markers'}));
+    const natx=[],naty=[];
+    AYEARS.forEach(y=>{if(!partiesOf(y).includes(p))return;
+      let v=0,d=0;grid.forEach(g=>{const rr=reg[y][g.short];if(rr&&rr['v_'+p]!=null){v+=rr['v_'+p];
+        d+=metric==='reg'?rr.electorate:rr.valid;}});
+      if(d>0){natx.push(String(y));naty.push(100*v/d);}});
+    traces.push({x:natx,y:naty,name:'RUSSIA',mode:'lines',line:{color:pc(p),width:3,dash:'dash'}});
+    Plotly.newPlot('chTraj',traces,{...baseLayout,title:{text:`${nm(p)} — ${metric==='reg'?'% of registered':'% of valid'}`,font:{size:13}},
+      yaxis:{title:'%',rangemode:'tozero'},height:340,legend:{font:{size:10}}},{displayModeBar:false,responsive:true});
+    const sx=[],sy=[];
+    AYEARS.forEach(y=>{if(!partiesOf(y).includes(p))return;
+      const vv=grid.map(g=>share(y,g.short,p,metric)).filter(v=>v!=null);
+      if(vv.length>10){const mu=vv.reduce((a,b)=>a+b,0)/vv.length;
+        sx.push(String(y));sy.push(Math.sqrt(vv.reduce((a,b)=>a+(b-mu)**2,0)/vv.length));}});
+    Plotly.newPlot('chConv',[{x:sx,y:sy,mode:'lines+markers',line:{color:pc(p),width:3}}],
+      {...baseLayout,title:{text:'Cross-regional std. deviation (pp)',font:{size:13}},
+       yaxis:{rangemode:'tozero'},height:340},{displayModeBar:false,responsive:true});
+  }
+  window.rmRegion=r=>{selRegions=selRegions.filter(x=>x!==r);drawTraj();};
+  tP.onchange=drawTraj; tM.onchange=drawTraj;
+
+  // ---------- histograms ----------
+  const hY=document.getElementById('hYear'), hP=document.getElementById('hParty'), hL=document.getElementById('hLog');
+  AYEARS.slice().reverse().forEach(y=>hY.add(new Option(y,y)));
+  function fillH(){fillParties(hP,hY.value,false);}
+  hY.onchange=fillH; fillH();
+  let hSeries=[];
+  function drawHists(){
+    const bins=[...Array(201)].map((_,i)=>i*0.5+0.25);
+    const traces=hSeries.filter(s=>hist[s.y]&&hist[s.y][s.p]).map((s)=>({x:bins,y:hist[s.y][s.p],name:`${nm(s.p)} ${s.y}`,
+      type:'scatter',mode:'lines',line:{width:2,color:pc(s.p)},fill:'tozeroy',fillcolor:pc(s.p)+'26',opacity:.72}));
+    Plotly.newPlot('chHistP',traces,{...baseLayout,
+      xaxis:{title:'share of valid votes (%)',range:[0,100]},
+      yaxis:{title:'polling stations',type:hL.checked?'log':'linear'},
+      height:380,legend:{orientation:'h',y:1.12}},{displayModeBar:false,responsive:true});
+  }
+  document.getElementById('hAdd').onclick=()=>{
+    if(hSeries.length>=3)hSeries.shift();
+    hSeries.push({y:hY.value,p:hP.value});drawHists();};
+  document.getElementById('hClear').onclick=()=>{hSeries=[];drawHists();};
+  hL.onchange=drawHists;
+
+  // ---------- fingerprint ----------
+  const fY=document.getElementById('fYear'), fP=document.getElementById('fParty');
+  AYEARS.slice().reverse().forEach(y=>fY.add(new Option(y,y)));
+  function fillF(){const cur=fP.value;fP.innerHTML='';
+   Object.keys(f2d[fY.value]||{}).forEach(p=>fP.add(new Option(nm(p),p)));
+   if([...fP.options].some(o=>o.value===cur))fP.value=cur;
+   else if([...fP.options].some(o=>o.value==='Putin'))fP.value='Putin';}
+  function drawFinger(){
+    const H=(f2d[fY.value]||{})[fP.value]; if(!H)return;
+    const z=H[0].map((_,jc)=>H.map(row=>Math.log10(1+row[jc])));
+    Plotly.newPlot('chFinger',[{z,type:'heatmap',
+      colorscale:REDVIZ.partyScale ? REDVIZ.partyScale(fP.value) : REDVIZ.DENSITY,
+      x:[...Array(100)].map((_,i)=>i+0.5),y:[...Array(100)].map((_,i)=>i+0.5),
+      hovertemplate:'turnout %{x}%, share %{y}%<extra></extra>',showscale:true,
+      colorbar:{title:{text:'polling stations<br>log count'},len:.72,thickness:12}}],
+      {...baseLayout,xaxis:{title:'Turnout (%)',range:[0,100]},
+       yaxis:{title:`${nm(fP.value)} share of valid votes (%)`,range:[0,100],scaleanchor:'x',constrain:'domain'},
+       annotations:[
+         {x:82,y:82,text:'high-turnout pattern',showarrow:true,arrowhead:2,ax:-55,ay:-38,bgcolor:'rgba(255,255,255,.85)',bordercolor:'#e2dfd8',font:{size:11}},
+         {x:45,y:30,text:'main precinct mass',showarrow:true,arrowhead:2,ax:-38,ay:-30,bgcolor:'rgba(255,255,255,.85)',bordercolor:'#e2dfd8',font:{size:11}}
+       ],
+       height:540},{displayModeBar:false,responsive:true});
+  }
+  fY.onchange=()=>{fillF();drawFinger();}; fP.onchange=drawFinger;
+
+  // ---------- size gradient ----------
+  const gY=document.getElementById('gYear');
+  AYEARS.slice().reverse().forEach(y=>gY.add(new Option(y,y)));
+  const EDGE_LABELS=['<100','100–299','300–599','600–999','1000–1499','1500–1999','2000–2499','2500+'];
+  function drawGrad(){
+    const y=gY.value, d=sizeb.party[y]||{};
+    const traces=Object.entries(d).map(([p,bb])=>({
+      x:EDGE_LABELS,y:bb.map(([v,val])=>val>0?100*v/val:null),
+      name:nm(p),mode:'lines+markers',line:{color:pc(p),width:2},marker:{color:pc(p)}}));
+    Plotly.newPlot('chGrad',traces,{...baseLayout,
+      xaxis:{title:'polling station size (registered voters)'},
+      yaxis:{title:'share of valid votes (%)',rangemode:'tozero'},
+      height:380,legend:{font:{size:10}}},{displayModeBar:false,responsive:true});
+  }
+  gY.onchange=drawGrad;
+
+  // presets and initial draws
+  function applyTilePreset(kind){
+    if(kind==='putin-reg'){mY.value='2024';fillParties(mP,mY.value,false);if([...mP.options].some(o=>o.value==='Putin'))mP.value='Putin';mM.value='reg';}
+    if(kind==='davankov-valid'){mY.value='2024';fillParties(mP,mY.value,false);if([...mP.options].some(o=>o.value==='Davankov'))mP.value='Davankov';mM.value='valid';}
+    if(kind==='turnout'){mY.value='2024';fillParties(mP,mY.value,false);if([...mP.options].some(o=>o.value==='Putin'))mP.value='Putin';mM.value='turnout';}
+    if(kind==='delta'){mY.value='2024';fillParties(mP,mY.value,false);if([...mP.options].some(o=>o.value==='Putin'))mP.value='Putin';mM.value='delta';}
+    drawAfterParty();
+    document.querySelectorAll('#analysisView [data-tile-preset]').forEach(b=>b.classList.toggle('active',b.dataset.tilePreset===kind));
+  }
+  document.querySelectorAll('#analysisView [data-tile-preset]').forEach(b=>b.onclick=()=>applyTilePreset(b.dataset.tilePreset));
+  document.querySelectorAll('#analysisView [data-party-preset]').forEach(b=>b.onclick=()=>{
+    const p=b.dataset.partyPreset;
+    if([...smP.options].some(o=>o.value===p)){smP.value=p;drawSM();}
+    document.querySelectorAll('#analysisView [data-party-preset]').forEach(x=>x.classList.toggle('active',x===b));
+  });
+  document.querySelectorAll('#analysisView [data-regions]').forEach(b=>b.onclick=()=>{
+    selRegions=b.dataset.regions.split(',').filter(r=>shortName[r]);
+    drawTraj();
+  });
+
+  applyTilePreset('putin-reg');
+  smP.value='UR';smM.value='reg';drawSM();document.querySelector('#analysisView [data-party-preset="UR"]')?.classList.add('active');
+  tP.value='UR';tM.value='reg';drawTraj();
+  fillF();drawFinger();drawGrad();
+  hSeries=[
+    {y:hY.value,p:partiesOf(hY.value).includes('Putin')?'Putin':partiesOf(hY.value)[0]},
+    {y:hY.value,p:partiesOf(hY.value).includes('Davankov')?'Davankov':partiesOf(hY.value)[1]}
+  ].filter(s=>s.p);
+  drawHists();
+
+  analysisReady=true; analysisLoading=false;
+}
+
+document.querySelectorAll('.view-tab').forEach(b=>b.onclick=()=>{
+  const v=b.dataset.view;
+  document.querySelectorAll('.view-tab').forEach(x=>x.classList.toggle('active',x===b));
+  document.body.classList.toggle('analysis-mode', v==='analysis');
+  document.getElementById('analysisView').classList.toggle('show', v==='analysis');
+  if(v==='analysis') initAnalysis();
+  setTimeout(()=>{ if(map) map.resize(); },60);
+});
+if(location.hash==='#analysis' || new URLSearchParams(location.search).get('tab')==='analysis'){
+  document.querySelector('.view-tab[data-view="analysis"]')?.click();
+}
+</script>
+</body>
+</html>

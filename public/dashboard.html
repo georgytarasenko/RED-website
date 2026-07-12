@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — RED: Russian Electoral Data</title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='6'%20fill='%238b1e2d'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='18'%20fill='%23fff'%20text-anchor='middle'%20font-weight='700'%3ER%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<script src="assets/red-viz.js?v=2"></script>
+</head>
+<body>
+<div class="demo-banner">Demo note: interactive dashboard charts are computed from a provisional aggregate build of RED (through 2024). The published download is the harmonized release; caveats are documented in Usage Notes.</div>
+<nav><div class="container">
+  <a class="brand" href="index.html">RED</a>
+  <a class="link" href="index.html">Home</a>
+  <a class="link active" href="dashboard.html">Dashboard</a>
+  <a class="link" href="explorer.html">Map Explorer</a>
+  <a class="link" href="data.html">Data &amp; Docs</a>
+  <span class="spacer"></span>
+  <span class="lang">EN · <span class="disabled" title="Russian interface forthcoming">RU soon</span></span>
+</div></nav>
+
+<section class="block"><div class="container">
+  <h2 class="sec">The changing shape of Russia's federal elections</h2>
+  <p class="sub">Start with the precinct fingerprint, then trace turnout modes, regional incumbent support, round-number anomalies, and panel coverage. These views are exploratory summaries of RED, not legal judgments about individual polling stations.</p>
+
+  <div class="panel lead-panel">
+    <div class="eyebrow-sec" data-num="01"><span>Signature pattern</span><span class="rule"></span></div>
+    <h3>The precinct fingerprint changes shape as the system consolidates</h3>
+    <p class="note">Each cell counts polling stations by turnout (x) and incumbent share of registered voters (y). Smooth clusters, diagonal high-turnout/high-share tails, and integer-percentage bands are distributional anomaly indicators. They are not proof of fraud at any specific polling station. Press play to watch the fingerprint evolve, 2000 → 2024.</p>
+    <div class="anim-row">
+      <button class="playbtn" id="fpPlay" aria-label="Play fingerprint animation">▶</button>
+      <span class="year-badge" id="fpYearBadge">2000</span>
+      <input type="range" id="fpSlider" min="0" max="9" value="0" step="1" aria-label="Election year">
+    </div>
+    <div class="preset-row" aria-label="Fingerprint year presets">
+      <button class="preset" data-hist-year="2000">2000 baseline</button>
+      <button class="preset" data-hist-year="2011">2011 parliamentary</button>
+      <button class="preset" data-hist-year="2018">2018 presidential</button>
+      <button class="preset" data-hist-year="2021">2021 parliamentary</button>
+      <button class="preset" data-hist-year="2024">2024 latest</button>
+    </div>
+    <div class="annotation-row">
+      <span class="annotation"><b>Ordinary cluster</b> dense middle of precincts</span>
+      <span class="annotation"><b>Comet tail</b> high turnout and high incumbent share</span>
+      <span class="annotation"><b>Grid bands</b> excess round percentages</span>
+    </div>
+    <div class="controls"><label>Election <select id="selHistYear"></select></label></div>
+    <div id="chHist" class="chart skeleton" role="img" aria-label="Heatmap: polling stations binned by turnout and incumbent share of registered voters for the selected election" style="min-height:560px"></div>
+    <div class="source-line"><b>Source:</b> RED v2.0 · CEC precinct returns, harmonized. 100×100 bins, log color scale. Deviations from smooth patterns are indicators — not proof — of manipulation, administrative target-setting, or reporting artifacts.</div>
+  </div>
+
+  <div class="panel">
+    <div class="eyebrow-sec" data-num="02"><span>National trajectory</span><span class="rule"></span></div>
+    <h3>Presidential elections mobilize more voters; off-site voting grows over time</h3>
+    <p class="note">Turnout is shown as a share of registered voters. The second chart separates off-site ("home") and early voting, which are harder to observe than ordinary in-person voting.</p>
+    <div id="chTurnout" class="chart"></div>
+    <div id="chModes" class="chart" style="min-height:320px"></div>
+    <div class="foot">Turnout = (valid + invalid ballots) / registered voters. Off-site and early voting shown as % of registered voters.</div>
+  </div>
+
+  <div class="panel">
+    <div class="eyebrow-sec" data-num="03"><span>Regional variation</span><span class="rule"></span></div>
+    <h3>Incumbent support is regionally concentrated, not evenly national</h3>
+    <p class="note">Incumbent share of <b>registered voters</b> combines turnout and vote share. Pick a year to rank regions; click a bar or use the search box to see one region's full trajectory.</p>
+    <div class="controls">
+      <label>Year <select id="selRegYear"></select></label>
+      <label>Show <select id="selRegMode"><option value="top">Top 15</option><option value="bottom">Bottom 15</option></select></label>
+      <label>Region <input type="text" id="inpRegion" list="regList" placeholder="e.g. город Москва"><datalist id="regList"></datalist></label>
+      <button id="btnRegion" class="preset">Show trajectory</button>
+      <span id="regStatus" class="status-note"></span>
+    </div>
+    <div id="chRegions" class="chart"></div>
+    <div id="chRegionTS" class="chart" style="min-height:300px;display:none"></div>
+    <div class="foot">Incumbent = Putin (2000, 2004, 2012, 2018), Medvedev (2008), United Russia party list (2003–2021). Region names as reported in raw returns (unharmonized in this demo).</div>
+  </div>
+
+  <div class="panel">
+    <div class="eyebrow-sec" data-num="04"><span>Forensic lens</span><span class="rule"></span></div>
+    <h3>Round-number spikes reveal non-random percentage patterns</h3>
+    <p class="note">Frequency of the tenths digit of precinct percentages. Under smooth reporting, each digit should appear near 10% of the time. A spike at 0 is consistent with administrative rounding, target-setting, manipulation, or other non-random reporting processes; it is an anomaly indicator, not proof for any polling station.</p>
+    <div class="controls">
+      <label>Election <select id="selDigYear"></select></label>
+      <label>Metric <select id="selDigMetric"><option value="turnout">Turnout %</option><option value="incumbent">Incumbent %</option></select></label>
+    </div>
+    <div id="chDigits" class="chart" role="img" aria-label="Bar chart: frequency of each tenths digit of precinct percentages, against a 10 percent uniform reference line" style="min-height:360px"></div>
+    <div class="foot">Digit taken from percentages rounded to one decimal; digit 0 ⇒ integer percentage. Dashed line = 10% uniform expectation.</div>
+  </div>
+
+  <div class="panel">
+    <div class="eyebrow-sec" data-num="05"><span>The payoff of harmonization</span><span class="rule"></span></div>
+    <h3>31,237 precincts can be followed through all eleven elections <span class="pill">from harmonized RED</span></h3>
+    <p class="note">Every other chart on this site exists only because shifting precinct identifiers were first stitched into stable ones. Each row below is a <b>presence pattern</b> — a shape of which elections a precinct appears in. Hover a row for its story. See the harmonized-ID guidance in <a href="data.html#usage">the usage notes</a>.</p>
+    <div class="mini-metrics">
+      <div class="mini-metric"><div class="v" id="mmAll">31,237</div><div class="l">present in all 11 elections</div></div>
+      <div class="mini-metric"><div class="v">195,366</div><div class="l">unique harmonized precincts</div></div>
+      <div class="mini-metric"><div class="v">11</div><div class="l">federal elections, 2000–2024</div></div>
+    </div>
+    <div class="cov-toggle" role="group" aria-label="Sort coverage rows">
+      <button data-cov-sort="count" class="active">Most common patterns</button>
+      <button data-cov-sort="span">Longest span first</button>
+    </div>
+    <div class="cov-head"><span></span><span>'00</span><span>'03</span><span>'04</span><span>'07</span><span>'08</span><span>'11</span><span>'12</span><span>'16</span><span>'18</span><span>'21</span><span>'24</span><span>precincts</span><span class="cov-story-col">share</span></div>
+    <div id="covRows"></div>
+    <div class="cov-story" id="covStory">Hover a pattern to read what it means. The gold row is the full 25-year panel — the safest starting point for longitudinal precinct analysis.</div>
+    <div class="source-line"><b>Source:</b> RED v2.0 data descriptor, Table 4. Coloured cells mark observed elections; bars show each pattern's share of the top 10. Use harmonized <code class="inline">precinct_id</code> for panels; original codes remain in <code class="inline">uik_old</code>.</div>
+  </div>
+
+</div></section>
+
+<footer><div class="container">RED: Russian Electoral Data. Bogatyrev, Tarasenko &amp; Savin, Scientific Data, 2026. Data: <a href="https://doi.org/10.7910/DVN/DFGNTP">Harvard Dataverse</a>. Code: <a href="https://github.com/georgytarasenko/RED-replication-package">GitHub</a>. License: CC BY 4.0.</div></footer>
+
+<script>
+if (location.protocol === 'file:') {
+  document.querySelector('.container .sub').insertAdjacentHTML('afterend',
+    `<div style="background:#fdecec;border:1px solid #e3b3b3;border-radius:8px;padding:16px 20px;margin-bottom:24px;font-size:.95rem">
+     <b>Opened as a local file — charts can't load.</b> Browsers block data loading from <code>file://</code> pages.
+     Run from a terminal:<pre style="background:#fff;border-radius:6px;padding:10px;margin-top:8px;font-size:.8rem">cd "/Users/georgetarasenko/Dropbox/red copy/red_website_demo"
+python3 -m http.server 8000</pre>then open <a href="http://localhost:8000/dashboard.html">http://localhost:8000/dashboard.html</a></div>`);
+}
+const RED=REDVIZ.C.incumbent, GOLD=REDVIZ.C.anomaly, GRAY=REDVIZ.C.context,
+      BLUE=REDVIZ.C.opposition, INK=REDVIZ.C.ink;
+const baseLayout=REDVIZ.layout();
+const fmt=n=>n.toLocaleString('en-US');
+const incumbentId=y=>[2003,2007,2011,2016,2021].includes(+y)?'UR':(+y===2008?'Medvedev':'Putin');
+
+async function j(f){const r=await fetch('data/'+f);return r.json();}
+
+(async()=>{
+const [nat, regions, hist2d, lastdigit, panel]=await Promise.all(
+  ['national.json','regions.json','hist2d.json','lastdigit.json','panel.json'].map(j));
+
+// ---- 1. turnout & modes ----
+const years=nat.map(d=>d.year);
+const t=nat.map(d=>100*d.votes/d.electorate);
+const colors=nat.map(d=>d.type==='pres'?RED:GRAY);
+Plotly.newPlot('chTurnout',[{x:years.map(String),y:t,type:'bar',marker:{color:colors},
+  text:t.map(v=>v.toFixed(1)+'%'),textposition:'outside',hovertemplate:'%{x}: %{y:.1f}%<extra></extra>'}],
+  {...baseLayout,title:{text:'Turnout is consistently higher in presidential elections',font:{size:14}},
+   yaxis:{title:'% of registered voters',range:[0,85]},height:360},{displayModeBar:false,responsive:true});
+Plotly.newPlot('chModes',[
+  {x:years.map(String),y:nat.map(d=>100*d.offsite/d.electorate),name:'Off-site (“home”) voting',
+   mode:'lines+markers',line:{color:RED,width:3}},
+  {x:years.map(String),y:nat.map(d=>100*d.early/d.electorate),name:'Early voting',
+   mode:'lines+markers',line:{color:BLUE,width:3}}],
+  {...baseLayout,title:{text:'Off-site voting becomes a larger part of the system',font:{size:14}},
+   yaxis:{title:'% of registered voters'},height:320,legend:{orientation:'h',y:1.15}},
+  {displayModeBar:false,responsive:true});
+
+// ---- 2. regions ----
+const regYears=Object.keys(regions);
+const selRY=document.getElementById('selRegYear'), selRM=document.getElementById('selRegMode'),
+      inpR=document.getElementById('inpRegion'), dl=document.getElementById('regList'),
+      btnR=document.getElementById('btnRegion'), regStatus=document.getElementById('regStatus');
+regYears.slice().reverse().forEach(y=>selRY.add(new Option(y,y)));
+const allRegions=[...new Set(regYears.flatMap(y=>Object.keys(regions[y])))].sort();
+allRegions.forEach(r=>dl.appendChild(new Option(r)));
+function incShare(d){return 100*d.incumbent/d.electorate;}
+function drawRegions(){
+  const y=selRY.value, mode=selRM.value;
+  let rows=Object.entries(regions[y]).map(([r,d])=>[r,incShare(d)]).sort((a,b)=>b[1]-a[1]);
+  rows=(mode==='top')?rows.slice(0,15):rows.slice(-15);
+  rows.reverse();
+  Plotly.newPlot('chRegions',[{y:rows.map(r=>r[0]),x:rows.map(r=>r[1]),type:'bar',orientation:'h',
+    marker:{color:REDVIZ.partyColor(incumbentId(y))},hovertemplate:'%{y}: %{x:.1f}%<extra></extra>'}],
+    {...baseLayout,title:{text:`Incumbent share of registered voters, ${y} (${mode==='top'?'highest':'lowest'} 15)`,font:{size:14}},
+     xaxis:{title:'%',range:[0,100]},height:460,margin:{...baseLayout.margin,l:230}},
+    {displayModeBar:false,responsive:true});
+  document.getElementById('chRegions').on('plotly_click',e=>{inpR.value=e.points[0].y;drawRegionTS();});
+}
+function drawRegionTS(){
+  const q=inpR.value.trim(), nq=q.normalize('NFC').toLowerCase();
+  let r=allRegions.find(x=>x.normalize('NFC').toLowerCase()===nq);
+  if(!r&&q){const hits=allRegions.filter(x=>x.normalize('NFC').toLowerCase().includes(nq));if(hits.length===1)r=hits[0];}
+  if(!r){
+    document.getElementById('chRegionTS').style.display='none';
+    regStatus.textContent=q?'No exact region match yet. Choose a datalist value or click a bar.':'';
+    return;
+  }
+  regStatus.textContent=`Showing ${r}`;
+  const xs=[],ys=[],ts=[];
+  regYears.forEach(y=>{const d=regions[y][r];if(d){xs.push(y);ys.push(incShare(d));
+    ts.push(100*d.votes/d.electorate);}});
+  const el=document.getElementById('chRegionTS');el.style.display='block';
+  Plotly.newPlot(el,[
+    {x:xs,y:ys,name:'Incumbent (of registered)',mode:'lines+markers',line:{color:REDVIZ.partyColor(incumbentId(xs[xs.length-1]||selRY.value)),width:3}},
+    {x:xs,y:ts,name:'Turnout',mode:'lines+markers',line:{color:GRAY,width:2,dash:'dot'}}],
+    {...baseLayout,title:{text:r,font:{size:14}},yaxis:{title:'%',range:[0,105]},height:300,
+     legend:{orientation:'h',y:1.2}},{displayModeBar:false,responsive:true});
+}
+selRY.onchange=drawRegions; selRM.onchange=drawRegions; inpR.onchange=drawRegionTS; btnR.onclick=drawRegionTS;
+inpR.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();drawRegionTS();}});
+drawRegions();
+
+// ---- 3. 2d hist (animated) ----
+const selH=document.getElementById('selHistYear');
+const HYEARS=Object.keys(hist2d); // ascending 2000..2021
+HYEARS.slice().reverse().forEach(y=>{
+  const ty=nat.find(d=>d.year==y).type==='pres'?'presidential':'parliamentary';
+  selH.add(new Option(`${y} (${ty})`,y));});
+const fpSlider=document.getElementById('fpSlider'), fpBadge=document.getElementById('fpYearBadge'),
+      fpPlay=document.getElementById('fpPlay');
+fpSlider.max=HYEARS.length-1;
+let fpTimer=null, histReady=false;
+function drawHist(){
+  const H=hist2d[selH.value];
+  const z=H[0].map((_,jc)=>H.map(row=>Math.log10(1+row[jc]))); // transpose: x=turnout bins, y=incumbent bins
+  Plotly.react('chHist',[{z:z,type:'heatmap',colorscale:REDVIZ.partyScale(incumbentId(selH.value)),
+    x:[...Array(100)].map((_,i)=>i+0.5),y:[...Array(100)].map((_,i)=>i+0.5),
+    hovertemplate:'turnout %{x}%, incumbent %{y}%<extra></extra>',showscale:true,
+    colorbar:{title:{text:'polling stations<br>log count'},len:.72,thickness:12}}],
+    {...baseLayout,xaxis:{title:'Turnout (%)',range:[0,100]},
+     yaxis:{title:'Incumbent share of registered voters (%)',range:[0,100],scaleanchor:'x',constrain:'domain'},
+     annotations:[
+       {x:45,y:35,text:'ordinary cluster',showarrow:true,arrowhead:2,ax:-45,ay:-32,bgcolor:'rgba(255,255,255,.85)',bordercolor:'#e2dfd8',font:{size:11}},
+       {x:86,y:82,text:'high-turnout / high-share tail',showarrow:true,arrowhead:2,ax:-70,ay:-48,bgcolor:'rgba(255,255,255,.85)',bordercolor:'#e2dfd8',font:{size:11}},
+       {x:70,y:70,text:'round-number bands',showarrow:true,arrowhead:2,ax:46,ay:-34,bgcolor:'rgba(255,255,255,.85)',bordercolor:'#e2dfd8',font:{size:11}}
+     ],
+     height:560,transition:{duration:450,easing:'cubic-in-out'}},{displayModeBar:false,responsive:true});
+  if(!histReady){document.getElementById('chHist').classList.remove('skeleton');histReady=true;}
+  const idx=HYEARS.indexOf(selH.value);
+  fpSlider.value=idx; fpBadge.textContent=selH.value;
+  document.querySelectorAll('[data-hist-year]').forEach(b=>b.classList.toggle('active',b.dataset.histYear===selH.value));
+}
+function setHistIdx(i){selH.value=HYEARS[i];drawHist();}
+selH.onchange=drawHist;
+fpSlider.oninput=()=>setHistIdx(+fpSlider.value);
+document.querySelectorAll('[data-hist-year]').forEach(b=>b.onclick=()=>{stopFp();selH.value=b.dataset.histYear;drawHist();});
+function stopFp(){if(fpTimer){clearInterval(fpTimer);fpTimer=null;fpPlay.textContent='▶';}}
+fpPlay.onclick=()=>{
+  if(fpTimer){stopFp();return;}
+  fpPlay.textContent='❚❚';
+  fpTimer=setInterval(()=>{
+    let i=HYEARS.indexOf(selH.value)+1; if(i>=HYEARS.length)i=0;
+    setHistIdx(i);
+  },1100);
+};
+drawHist();
+
+// ---- 4. last digit ----
+const selD=document.getElementById('selDigYear'), selDM=document.getElementById('selDigMetric');
+Object.keys(lastdigit).slice().reverse().forEach(y=>selD.add(new Option(y,y)));
+function drawDigits(){
+  const counts=lastdigit[selD.value][selDM.value];
+  const total=counts.reduce((a,b)=>a+b,0);
+  const pct=counts.map(c=>100*c/total);
+  Plotly.newPlot('chDigits',[{x:[...Array(10).keys()].map(String),y:pct,type:'bar',
+    marker:{color:pct.map((_,i)=>i===0?GOLD:REDVIZ.partyColor(incumbentId(selD.value)))},
+    text:pct.map(v=>v.toFixed(1)+'%'),textposition:'outside',hovertemplate:'digit %{x}: %{y:.2f}%<extra></extra>'}],
+    {...baseLayout,shapes:[{type:'line',x0:-0.5,x1:9.5,y0:10,y1:10,line:{dash:'dash',color:INK,width:1.5}}],
+     annotations:[{x:0,y:pct[0],text:'excess round<br>percentages',showarrow:true,arrowhead:2,ax:45,ay:-38,bgcolor:'rgba(255,255,255,.85)',bordercolor:'#e2dfd8',font:{size:11}}],
+     yaxis:{title:'frequency (%)',range:[0,Math.max(13,Math.max(...pct)*1.15)]},
+     xaxis:{title:'last (tenths) digit of percentage'},height:360},{displayModeBar:false,responsive:true});
+}
+selD.onchange=drawDigits; selDM.onchange=drawDigits; drawDigits();
+
+// ---- 5. reframed coverage matrix ----
+const covRows=document.getElementById('covRows'), covStory=document.getElementById('covStory');
+const YRLAB=panel.labels;
+const maxCount=Math.max(...panel.patterns.map(p=>p.count));
+function span(mask){const on=mask.map((m,i)=>m?i:-1).filter(i=>i>=0);return on.length?on[on.length-1]-on[0]+1:0;}
+function nOn(mask){return mask.filter(Boolean).length;}
+function storyFor(p){
+  const on=p.mask.map((m,i)=>m?i:-1).filter(i=>i>=0);
+  const first=YRLAB[on[0]].replace("'","20"), last=YRLAB[on[on.length-1]].replace("'","20");
+  if(nOn(p.mask)===11) return `<b>The full panel.</b> ${fmt(p.count)} precincts appear in every election 2000–2024 — the safest starting point for 25-year precinct analysis, only possible because their shifting IDs were harmonized.`;
+  if(p.mask[10]&&p.mask[7]&&!p.mask[0]) return `<b>${fmt(p.count)} precincts</b> first appear around ${first} and run through ${last} — a post-2013 cohort (new stations, splits, or renumbering that couldn't be linked further back).`;
+  if(!p.mask[10]&&p.mask[0]) return `<b>${fmt(p.count)} precincts</b> are observed ${first}–${last} then drop out — retired, merged, or renumbered beyond confident linkage.`;
+  return `<b>${fmt(p.count)} precincts</b> present ${first}–${last} (${nOn(p.mask)} of 11 elections).`;
+}
+let covSort='count';
+function renderCov(){
+  const rows=panel.patterns.slice().sort((a,b)=> covSort==='count'? b.count-a.count : (span(b.mask)-span(a.mask))||(b.count-a.count));
+  covRows.innerHTML=rows.map((p,i)=>{
+    const full=nOn(p.mask)===11;
+    const cells=p.mask.map(m=>`<div class="cov-cell ${m?(full?'on gold':'on'):'off'}"></div>`).join('');
+    const bar=Math.round(100*p.count/maxCount);
+    return `<div class="cov-row" data-i="${rows.indexOf(p)}" data-orig="${panel.patterns.indexOf(p)}">
+      <div class="idx">${i+1}</div>${cells}
+      <div class="cov-count">${fmt(p.count)}</div>
+      <div class="cov-story-col"><div class="cov-densebar"><span style="width:${bar}%"></span></div></div>
+    </div>`;
+  }).join('');
+  covRows.querySelectorAll('.cov-row').forEach(r=>{
+    const p=panel.patterns[+r.dataset.orig];
+    r.onmouseenter=()=>{covStory.innerHTML=storyFor(p);};
+  });
+}
+document.querySelectorAll('[data-cov-sort]').forEach(b=>b.onclick=()=>{
+  covSort=b.dataset.covSort;
+  document.querySelectorAll('[data-cov-sort]').forEach(x=>x.classList.toggle('active',x===b));
+  renderCov();
+});
+document.getElementById('mmAll').textContent=fmt(panel.all_eleven);
+renderCov();
+})();
+</script>
+</body>
+</html>

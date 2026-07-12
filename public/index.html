@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RED — Russian Electoral Data</title>
+<meta property="og:title" content="RED — Russia's elections, precinct by precinct, 2000–2024">
+<meta property="og:description" content="1.04 million polling-station returns from every Russian federal election, harmonized into one panel.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='6'%20fill='%238b1e2d'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='18'%20fill='%23fff'%20text-anchor='middle'%20font-weight='700'%3ER%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<script src="assets/red-viz.js?v=2"></script>
+</head>
+<body>
+<div class="demo-banner">Demo note: interactive charts are computed from a provisional aggregate build of RED (through 2024). The published download is the harmonized release; caveats are documented in Usage Notes.</div>
+<nav><div class="container">
+  <a class="brand" href="index.html">RED</a>
+  <a class="link active" href="index.html">Home</a>
+  <a class="link" href="dashboard.html">Dashboard</a>
+  <a class="link" href="explorer.html">Map Explorer</a>
+  <a class="link" href="data.html">Data &amp; Docs</a>
+  <span class="spacer"></span>
+  <span class="lang">EN · <span class="disabled" title="Russian interface forthcoming">RU soon</span></span>
+</div></nav>
+
+<div class="hero"><div class="container hero-grid">
+  <div>
+    <span class="badge">Published in <b>Scientific Data</b></span>
+    <h1>Russia's elections, precinct by precinct.</h1>
+    <p class="tag">RED harmonizes 1.04 million polling-station returns from every Russian federal election, 2000–2024, so researchers can study turnout, vote shares, geography, online voting, and anomaly indicators.</p>
+    <div class="btn-row">
+      <a class="btn primary" href="dashboard.html">Explore Patterns</a>
+      <a class="btn ghost" href="data.html">Download &amp; Cite</a>
+      <a class="btn ghost" href="explorer.html">Open Map</a>
+    </div>
+    <div class="trust-strip">
+      <span>Scientific Data</span>
+      <a href="https://doi.org/10.7910/DVN/DFGNTP">Harvard Dataverse</a>
+      <a href="https://github.com/georgytarasenko/RED-replication-package">GitHub replication</a>
+      <span>CC BY 4.0</span>
+    </div>
+  </div>
+  <div class="hero-proof">
+    <div class="eyebrow">Signature visual</div>
+    <h2>The turnout x vote-share fingerprint changes shape over time</h2>
+    <div class="mini-grid">
+      <div id="fp2000" class="mini-chart"></div>
+      <div id="fp2024" class="mini-chart"></div>
+    </div>
+    <p class="caption">Each cell counts polling stations by turnout and Putin vote share. The pattern is an anomaly indicator, not a legal verdict about any precinct.</p>
+  </div>
+</div></div>
+
+<div class="stats"><div class="container">
+  <a class="stat primary-stat" href="dashboard.html" style="text-decoration:none"><div class="num">31,237 precincts, all 25 years</div><div class="lab">the panel core — polling stations RED can follow through every one of 11 federal elections</div></a>
+  <div class="stat"><div class="num">1.04M</div><div class="lab">precinct-election rows</div></div>
+  <div class="stat"><div class="num">195,366</div><div class="lab">unique harmonized precincts</div></div>
+  <div class="stat"><div class="num">83</div><div class="lab">regions · 2000–2024</div></div>
+</div></div>
+
+<section class="block"><div class="container">
+  <div class="eyebrow-sec" data-num="—"><span>Five facts, scrolling</span><span class="rule"></span></div>
+  <h2 class="sec">What 25 years of precinct data show</h2>
+  <p class="sub">Scroll through the argument; the figure on the right follows along. Then open the full tools.</p>
+  <div class="scrolly">
+    <div class="scrolly-steps">
+      <div class="scrolly-step" data-step="0">
+        <div class="k">01 · Scale</div>
+        <h3>Scattered returns, one file</h3>
+        <p>1.04 million polling-station rows — every Russian federal election, 2000–2024 — cleaned and harmonized into a single longitudinal dataset the CEC never offered.</p>
+      </div>
+      <div class="scrolly-step" data-step="1">
+        <div class="k">02 · Harmonization</div>
+        <h3>The number changes; the identity doesn't</h3>
+        <p>Precincts are renumbered between elections. RED links the fragments into one stable identity — the work that makes every other view below possible. <a href="dashboard.html">See how →</a></p>
+      </div>
+      <div class="scrolly-step" data-step="2">
+        <div class="k">03 · A changing system</div>
+        <h3>Off-site voting grows into the system</h3>
+        <p>Voting that is harder to observe — off-site and early — becomes a steadily larger share of the electorate over the period.</p>
+      </div>
+      <div class="scrolly-step" data-step="3">
+        <div class="k">04 · Convergence</div>
+        <h3>Regions stop looking different</h3>
+        <p>The spread of incumbent support across regions narrows as the system consolidates — visible as a falling cross-regional standard deviation. <a href="explorer.html?tab=analysis">Explore regions →</a></p>
+      </div>
+      <div class="scrolly-step" data-step="4">
+        <div class="k">05 · Read with care</div>
+        <h3>Anomaly indicators, not verdicts</h3>
+        <p>The turnout × share fingerprint reveals bunching and tails. These are statistical indicators for analysis — never proof of fraud at any single precinct.</p>
+      </div>
+    </div>
+    <div class="scrolly-sticky">
+      <div class="scrolly-figure">
+        <div id="scrollyFig" style="min-height:340px"></div>
+        <div class="cap" id="scrollyCap">1.04M precinct-election rows across 11 elections.</div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section class="block"><div class="container">
+  <h2 class="sec">What RED lets you do</h2>
+  <p class="sub">The primary source — the Central Election Commission's website — is not reachable from outside Russia and never offered bulk downloads. RED integrates, cleans, and harmonizes the scattered record into a single longitudinal dataset.</p>
+  <div class="cards">
+    <div class="card feature-card"><div class="k">Coverage</div><h3>Study every federal cycle since 2000</h3><p>Six presidential and five parliamentary elections: electorate, turnout by voting mode, invalid/valid ballots, and votes for every party list and presidential candidate.</p><a class="stretched" href="data.html">See coverage</a></div>
+    <div class="card feature-card"><div class="k">Panels</div><h3>Build precinct panels without hand-reconciling UIKs</h3><p>Precinct renumbering is resolved via sequence alignment and fuzzy address matching. Original source codes remain in <code class="inline">uik_old</code>.</p><a class="stretched" href="usage-notes.html">Read panel notes</a></div>
+    <div class="card feature-card"><div class="k">Geography</div><h3>Map polling stations from 2012 onward</h3><p>Latitude, longitude, and standardized addresses enable spatial analysis of electoral infrastructure and local political geography.</p><a class="stretched" href="explorer.html?tab=analysis">Open the map</a></div>
+    <div class="card feature-card"><div class="k">Online voting</div><h3>Separate online-voting aggregates from precinct rows</h3><p>Remote e-voting results are appended at district level in 2021 and regional level in 2024, flagged so they are never confused with physical polling stations.</p><a class="stretched" href="codebook.html">Find variables</a></div>
+    <div class="card feature-card"><div class="k">Anomaly indicators</div><h3>Audit patterns without turning charts into verdicts</h3><p>Precinct-level turnout and vote counts support last-digit tests, integer-percentage spikes, and turnout–vote-share field analysis across cycles.</p><a class="stretched" href="dashboard.html">Explore patterns</a></div>
+    <div class="card feature-card"><div class="k">Provenance</div><h3>Trace the sources behind the release</h3><p>CEC scrapes by Shpilkin and Shukshin, GIS-Lab address data, plus hand-digitized 2000 returns for Sakha (Yakutia) from a printed electoral handbook.</p><a class="stretched" href="data.html#sources">Review sources</a></div>
+  </div>
+</div></section>
+
+<section class="block" style="padding-top:0"><div class="container">
+  <h2 class="sec">Citation</h2>
+  <div class="cite">
+    Bogatyrev, Konstantin, Georgy Tarasenko, and Nikita Savin. 2026. <i>RED: Russian Electoral Data.</i> Scientific Data. <a href="https://doi.org/10.7910/DVN/DFGNTP">https://doi.org/10.7910/DVN/DFGNTP</a>
+<pre>@article{Bogatyrev2026RED,
+  author  = {Konstantin Bogatyrev and Georgy Tarasenko and Nikita Savin},
+  title   = {RED: Russian Electoral Data},
+  journal = {Scientific Data},
+  year    = {2026},
+  doi     = {10.7910/DVN/DFGNTP}
+}</pre>
+  </div>
+</div></section>
+
+<footer><div class="container">
+  RED: Russian Electoral Data. Bogatyrev, Tarasenko &amp; Savin, Scientific Data, 2026. Data: <a href="https://doi.org/10.7910/DVN/DFGNTP">Harvard Dataverse</a>. Code: <a href="https://github.com/georgytarasenko/RED-replication-package">GitHub</a>. License: CC BY 4.0.
+</div></footer>
+<script>
+const INK='#1a1a1f';
+const fpLayout=(title)=>({font:{family:'-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif',color:INK,size:10},
+  paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',
+  title:{text:title,font:{size:12}},margin:{t:28,r:8,b:30,l:34},
+  xaxis:{title:'turnout',range:[0,100],autorange:false,fixedrange:true,showgrid:false,zeroline:false},
+  yaxis:{title:'Putin share',range:[0,100],autorange:false,fixedrange:true,constrain:'domain',showgrid:false,zeroline:false}});
+function drawMini(el, H, title){
+  if(!H){document.getElementById(el).textContent='No demo matrix available';return;}
+  const z=H[0].map((_,jc)=>H.map(row=>Math.log10(1+row[jc])));
+  Plotly.newPlot(el,[{z,type:'heatmap',
+    colorscale:REDVIZ.partyScale('Putin'),
+    x:[...Array(100)].map((_,i)=>i+0.5),y:[...Array(100)].map((_,i)=>i+0.5),
+    hovertemplate:'turnout %{x}%, Putin %{y}%<extra></extra>',showscale:false}],
+    fpLayout(title),{displayModeBar:false,responsive:true});
+}
+fetch('data/geo_2d.json').then(r=>r.json()).then(d=>{
+  drawMini('fp2000',d['2000']&&d['2000'].Putin,'2000 presidential');
+  drawMini('fp2024',d['2024']&&d['2024'].Putin,'2024 presidential');
+}).catch(()=>{document.querySelector('.hero-proof .caption').textContent='Open via the local server to load the fingerprint preview.';});
+</script>
+
+<script>
+/* ---------- scrollytelling ---------- */
+(async()=>{
+  const fig=document.getElementById('scrollyFig'), cap=document.getElementById('scrollyCap');
+  if(!fig||location.protocol==='file:'){if(cap)cap.textContent='Open via the local server to load the scrolly figures.';return;}
+  const L=REDVIZ.layout, C=REDVIZ.C, CFG=REDVIZ.CONFIG;
+  let nat,reg,f2d;
+  try{[nat,reg,f2d]=await Promise.all(['national.json','regions.json','geo_2d.json'].map(f=>fetch('data/'+f).then(r=>r.json())));}
+  catch(e){cap.textContent='Open via the local server to load the scrolly figures.';return;}
+  const H=340;
+  const capText=['1.04M rows · '+nat.reduce((a,d)=>a+d.n_uik,0).toLocaleString()+' polling-station records across 11 elections.',
+    'Raw UIK numbers (left) resolve to one RED precinct_id (gold). Schematic.',
+    'Off-site and early voting as a share of registered voters, 2000–2024.',
+    'Cross-regional standard deviation of incumbent support — regions converge.',
+    'Putin 2024: turnout × vote share. Anomaly indicator, not a verdict.'];
+  function scale(){
+    const yrs=nat.map(d=>String(d.year)), v=nat.map(d=>d.n_uik/1000);
+    Plotly.newPlot(fig,[{x:yrs,y:v,type:'bar',marker:{color:nat.map(d=>d.type==='pres'?C.incumbent:C.context)},
+      hovertemplate:'%{x}: %{y:.0f}k stations<extra></extra>'}],
+      L({yaxis:{title:'polling stations (000s)'},height:H,margin:{t:16,r:12,b:44,l:52}}),CFG);
+  }
+  function thread(){
+    const yrs=["'00","'04","'08","'12","'18","'24"];
+    const raw=["#378ADD","#1D9E75","#1D9E75","#EF9F27","#EF9F27","#D4537E"], sh=[52,58,49,63,72,76];
+    const W=fig.clientWidth||520, pad=44, top=24, bot=H-42, n=yrs.length;
+    const X=i=>pad+(W-2*pad)*i/(n-1), Y=v=>bot-(bot-top)*v/100;
+    let step=0; const draw=red=>{
+      let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="precinct thread">`;
+      for(let i=0;i<n;i++)s+=`<text x="${X(i)}" y="${bot+26}" text-anchor="middle" font-size="13" fill="#8a827a" font-family="Inter">${yrs[i]}</text>`;
+      if(red){let p=[];for(let i=0;i<n;i++)p.push([X(i),Y(sh[i])]);
+        s+=`<path d="${p.map((q,i)=>(i?'L':'M')+q[0]+' '+q[1]).join(' ')}" fill="none" stroke="#c8a44b" stroke-width="4" stroke-linejoin="round"/>`;
+        p.forEach(q=>s+=`<circle cx="${q[0]}" cy="${q[1]}" r="6" fill="#c8a44b" stroke="#fff" stroke-width="2"/>`);
+        s+=`<text x="${pad}" y="16" font-size="13" fill="#5c5c66" font-family="Inter">one precinct_id · one series</text>`;
+      }else{for(let i=0;i<n;i++)s+=`<rect x="${X(i)-14}" y="${Y(sh[i])-12}" width="28" height="24" rx="4" fill="${raw[i]}"/>`;
+        s+=`<text x="${pad}" y="16" font-size="13" fill="#5c5c66" font-family="Inter">four raw UIK numbers</text>`;}
+      s+='</svg>'; fig.innerHTML=s;
+    };
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches){draw(true);clearInterval(fig._t);return;}
+    draw(false); clearInterval(fig._t); fig._t=setInterval(()=>{step^=1;draw(step);},1400);
+  }
+  function modes(){
+    const yrs=nat.map(d=>String(d.year));
+    Plotly.newPlot(fig,[
+      {x:yrs,y:nat.map(d=>100*d.offsite/d.electorate),name:'Off-site',mode:'lines+markers',line:{color:C.incumbent,width:3}},
+      {x:yrs,y:nat.map(d=>100*d.early/d.electorate),name:'Early',mode:'lines+markers',line:{color:C.opposition,width:3}}],
+      L({yaxis:{title:'% of registered voters'},height:H,margin:{t:16,r:12,b:44,l:52},legend:{orientation:'h',y:1.15}}),CFG);
+  }
+  function convergence(){
+    const yrs=Object.keys(reg).sort(), xs=[],ys=[];
+    yrs.forEach(y=>{const vals=Object.values(reg[y]).map(d=>100*d.incumbent/d.electorate).filter(v=>isFinite(v));
+      if(vals.length>10){const mu=vals.reduce((a,b)=>a+b,0)/vals.length;
+        xs.push(y);ys.push(Math.sqrt(vals.reduce((a,b)=>a+(b-mu)**2,0)/vals.length));}});
+    Plotly.newPlot(fig,[{x:xs,y:ys,mode:'lines+markers',line:{color:C.incumbent,width:3},fill:'tozeroy',fillcolor:'rgba(139,30,45,.08)'}],
+      L({yaxis:{title:'std. dev. across regions (pp)',rangemode:'tozero'},height:H,margin:{t:16,r:12,b:44,l:56}}),CFG);
+  }
+  function finger(){
+    const M=(f2d['2024']||{}).Putin; if(!M){scale();return;}
+    const z=M[0].map((_,jc)=>M.map(row=>Math.log10(1+row[jc])));
+    Plotly.newPlot(fig,[{z,type:'heatmap',colorscale:REDVIZ.partyScale('Putin'),showscale:false,
+      x:[...Array(100)].map((_,i)=>i+.5),y:[...Array(100)].map((_,i)=>i+.5),
+      hovertemplate:'turnout %{x}%, Putin %{y}%<extra></extra>'}],
+      L({xaxis:{title:'turnout %',range:[0,100],autorange:false},yaxis:{title:'Putin %',range:[0,100],autorange:false,constrain:'domain'},height:H,margin:{t:16,r:12,b:44,l:48}}),CFG);
+  }
+  const R=[scale,thread,modes,convergence,finger];
+  let cur=-1;
+  function activate(i){if(i===cur)return;cur=i;clearInterval(fig._t);R[i]();cap.textContent=capText[i];
+    document.querySelectorAll('.scrolly-step').forEach(s=>s.classList.toggle('dim',+s.dataset.step!==i));}
+  const steps=[...document.querySelectorAll('.scrolly-step')];
+  function onScroll(){const mid=innerHeight/2;let best=0,bd=1e9;
+    steps.forEach(s=>{const r=s.getBoundingClientRect();const d=Math.abs((r.top+r.bottom)/2-mid);if(d<bd){bd=d;best=+s.dataset.step;}});
+    activate(best);}
+  addEventListener('scroll',onScroll,{passive:true}); addEventListener('resize',onScroll); activate(0);
+})();
+</script>
+</body>
+</html>
